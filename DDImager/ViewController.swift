@@ -19,6 +19,7 @@
 import Cocoa
 
 var prefixes: [String] = ["B", "kB", "MB", "GB", "TB", "PB", "EB"]
+var debug = false
 
 class ValueCarrier {
     var fileSize: UInt64
@@ -139,21 +140,21 @@ class ProgressViewController: NSViewController {
     var processHasBeenStopped: Bool = false
     
     @objc func parseData(_ notification: Notification) {
-        //print("Got data")
+        if debug {print("Got data")}
         let data = notification.userInfo![NSFileHandleNotificationDataItem] as? Data
-        //print("Got data 2")
+        if debug {print("Got data 2")}
         if (data != nil && !(data!.isEmpty)) {
-            //print("Not empty")
+            if debug {print("Not empty")}
             if let line = String(data: data!, encoding: String.Encoding.utf8)?.replacingOccurrences(of: "\n", with: "") {
-                //print("Can be string: \(line)")
+                if debug {print("Can be string: \(line)")}
                 if (UInt64(line) != nil) {
-                    //print("Updating data")
+                    if debug {print("Updating data")}
                     //DispatchQueue.main.async {
-                        self.lastCopied = UInt64(line)! - self.totalCopied
-                        self.totalCopied = UInt64(line)!
-                        self.refreshData()
-                        //print("Updated data")
-                        (notification.object! as! FileHandle).readInBackgroundAndNotify()
+                    self.lastCopied = UInt64(line)! - self.totalCopied
+                    self.totalCopied = UInt64(line)!
+                    self.refreshData()
+                    if debug {print("Updated data")}
+                    (notification.object! as! FileHandle).readInBackgroundAndNotify()
                     //}
                     //return
                 } else if line.contains("records") {
