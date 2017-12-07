@@ -19,6 +19,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "STApplicationWillTerminate"), object: nil)
     }
 
 

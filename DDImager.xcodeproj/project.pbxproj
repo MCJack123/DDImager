@@ -11,6 +11,9 @@
 		53781E581FD8947F001F70AE /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53781E571FD8947F001F70AE /* ViewController.swift */; };
 		53781E5A1FD8947F001F70AE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53781E591FD8947F001F70AE /* Assets.xcassets */; };
 		53781E5D1FD8947F001F70AE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53781E5B1FD8947F001F70AE /* Main.storyboard */; };
+		53ACF98B1FD998180091FE2B /* Lock_Locked State@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 53ACF98A1FD998180091FE2B /* Lock_Locked State@2x.png */; };
+		53ACF98F1FD99B930091FE2B /* STPrivilegedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 53ACF98E1FD99B920091FE2B /* STPrivilegedTask.m */; };
+		53ACF9911FD9A5C70091FE2B /* pv in Resources */ = {isa = PBXBuildFile; fileRef = 53ACF9901FD9A5C70091FE2B /* pv */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +24,14 @@
 		53781E5C1FD8947F001F70AE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		53781E5E1FD8947F001F70AE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		53781E5F1FD8947F001F70AE /* DDImager.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DDImager.entitlements; sourceTree = "<group>"; };
+		53ACF98A1FD998180091FE2B /* Lock_Locked State@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Lock_Locked State@2x.png"; sourceTree = "<group>"; };
+		53ACF98C1FD99B910091FE2B /* DDImager-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DDImager-Bridging-Header.h"; sourceTree = "<group>"; };
+		53ACF98D1FD99B920091FE2B /* STPrivilegedTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = STPrivilegedTask.h; sourceTree = "<group>"; };
+		53ACF98E1FD99B920091FE2B /* STPrivilegedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = STPrivilegedTask.m; sourceTree = "<group>"; };
+		53ACF9901FD9A5C70091FE2B /* pv */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = pv; sourceTree = "<group>"; };
+		53ACF9921FD9F46A0091FE2B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
+		53ACF9931FD9F5500091FE2B /* image1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = image1.png; sourceTree = "<group>"; };
+		53ACF9941FD9F5580091FE2B /* image2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = image2.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,6 +48,8 @@
 		53781E491FD8947E001F70AE = {
 			isa = PBXGroup;
 			children = (
+				53ACF9931FD9F5500091FE2B /* image1.png */,
+				53ACF9941FD9F5580091FE2B /* image2.png */,
 				53781E541FD8947E001F70AE /* DDImager */,
 				53781E531FD8947E001F70AE /* Products */,
 			);
@@ -55,10 +68,16 @@
 			children = (
 				53781E551FD8947F001F70AE /* AppDelegate.swift */,
 				53781E571FD8947F001F70AE /* ViewController.swift */,
+				53ACF9921FD9F46A0091FE2B /* README.md */,
+				53ACF98D1FD99B920091FE2B /* STPrivilegedTask.h */,
+				53ACF98E1FD99B920091FE2B /* STPrivilegedTask.m */,
+				53ACF9901FD9A5C70091FE2B /* pv */,
 				53781E591FD8947F001F70AE /* Assets.xcassets */,
 				53781E5B1FD8947F001F70AE /* Main.storyboard */,
 				53781E5E1FD8947F001F70AE /* Info.plist */,
+				53ACF98A1FD998180091FE2B /* Lock_Locked State@2x.png */,
 				53781E5F1FD8947F001F70AE /* DDImager.entitlements */,
+				53ACF98C1FD99B910091FE2B /* DDImager-Bridging-Header.h */,
 			);
 			path = DDImager;
 			sourceTree = "<group>";
@@ -95,6 +114,7 @@
 				TargetAttributes = {
 					53781E511FD8947E001F70AE = {
 						CreatedOnToolsVersion = 9.1;
+						LastSwiftMigration = 0910;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -122,7 +142,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				53ACF9911FD9A5C70091FE2B /* pv in Resources */,
 				53781E5A1FD8947F001F70AE /* Assets.xcassets in Resources */,
+				53ACF98B1FD998180091FE2B /* Lock_Locked State@2x.png in Resources */,
 				53781E5D1FD8947F001F70AE /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -136,6 +158,7 @@
 			files = (
 				53781E581FD8947F001F70AE /* ViewController.swift in Sources */,
 				53781E561FD8947F001F70AE /* AppDelegate.swift in Sources */,
+				53ACF98F1FD99B930091FE2B /* STPrivilegedTask.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -263,6 +286,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = DDImager/DDImager.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -271,6 +295,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.bruienne.cppconsole.DDImager;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "DDImager/DDImager-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
@@ -279,6 +305,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = DDImager/DDImager.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -287,6 +314,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.bruienne.cppconsole.DDImager;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "DDImager/DDImager-Bridging-Header.h";
 				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
