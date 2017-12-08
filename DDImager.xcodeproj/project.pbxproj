@@ -14,7 +14,21 @@
 		53ACF98B1FD998180091FE2B /* Lock_Locked State@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 53ACF98A1FD998180091FE2B /* Lock_Locked State@2x.png */; };
 		53ACF98F1FD99B930091FE2B /* STPrivilegedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 53ACF98E1FD99B920091FE2B /* STPrivilegedTask.m */; };
 		53ACF9911FD9A5C70091FE2B /* pv in Resources */ = {isa = PBXBuildFile; fileRef = 53ACF9901FD9A5C70091FE2B /* pv */; };
+		53ACF99C1FDA0FB30091FE2B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 53ACF99B1FDA0FB30091FE2B /* main.m */; };
+		53ACF9A01FDA0FC20091FE2B /* setuid in Resources */ = {isa = PBXBuildFile; fileRef = 53ACF9991FDA0FB30091FE2B /* setuid */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		53ACF9971FDA0FB30091FE2B /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		53781E521FD8947E001F70AE /* DDImager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DDImager.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -32,10 +46,19 @@
 		53ACF9921FD9F46A0091FE2B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
 		53ACF9931FD9F5500091FE2B /* image1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = image1.png; sourceTree = "<group>"; };
 		53ACF9941FD9F5580091FE2B /* image2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = image2.png; sourceTree = "<group>"; };
+		53ACF9991FDA0FB30091FE2B /* setuid */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = setuid; sourceTree = BUILT_PRODUCTS_DIR; };
+		53ACF99B1FDA0FB30091FE2B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		53781E4F1FD8947E001F70AE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		53ACF9961FDA0FB30091FE2B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -51,6 +74,7 @@
 				53ACF9931FD9F5500091FE2B /* image1.png */,
 				53ACF9941FD9F5580091FE2B /* image2.png */,
 				53781E541FD8947E001F70AE /* DDImager */,
+				53ACF99A1FDA0FB30091FE2B /* setuid */,
 				53781E531FD8947E001F70AE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -59,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				53781E521FD8947E001F70AE /* DDImager.app */,
+				53ACF9991FDA0FB30091FE2B /* setuid */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -82,6 +107,14 @@
 			path = DDImager;
 			sourceTree = "<group>";
 		};
+		53ACF99A1FDA0FB30091FE2B /* setuid */ = {
+			isa = PBXGroup;
+			children = (
+				53ACF99B1FDA0FB30091FE2B /* main.m */,
+			);
+			path = setuid;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -102,6 +135,23 @@
 			productReference = 53781E521FD8947E001F70AE /* DDImager.app */;
 			productType = "com.apple.product-type.application";
 		};
+		53ACF9981FDA0FB30091FE2B /* setuid */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 53ACF99D1FDA0FB30091FE2B /* Build configuration list for PBXNativeTarget "setuid" */;
+			buildPhases = (
+				53ACF9951FDA0FB30091FE2B /* Sources */,
+				53ACF9961FDA0FB30091FE2B /* Frameworks */,
+				53ACF9971FDA0FB30091FE2B /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = setuid;
+			productName = setuid;
+			productReference = 53ACF9991FDA0FB30091FE2B /* setuid */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -115,6 +165,10 @@
 					53781E511FD8947E001F70AE = {
 						CreatedOnToolsVersion = 9.1;
 						LastSwiftMigration = 0910;
+						ProvisioningStyle = Automatic;
+					};
+					53ACF9981FDA0FB30091FE2B = {
+						CreatedOnToolsVersion = 9.1;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -133,6 +187,7 @@
 			projectRoot = "";
 			targets = (
 				53781E511FD8947E001F70AE /* DDImager */,
+				53ACF9981FDA0FB30091FE2B /* setuid */,
 			);
 		};
 /* End PBXProject section */
@@ -142,6 +197,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				53ACF9A01FDA0FC20091FE2B /* setuid in Resources */,
 				53ACF9911FD9A5C70091FE2B /* pv in Resources */,
 				53781E5A1FD8947F001F70AE /* Assets.xcassets in Resources */,
 				53ACF98B1FD998180091FE2B /* Lock_Locked State@2x.png in Resources */,
@@ -159,6 +215,14 @@
 				53781E581FD8947F001F70AE /* ViewController.swift in Sources */,
 				53781E561FD8947F001F70AE /* AppDelegate.swift in Sources */,
 				53ACF98F1FD99B930091FE2B /* STPrivilegedTask.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		53ACF9951FDA0FB30091FE2B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				53ACF99C1FDA0FB30091FE2B /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -319,6 +383,24 @@
 			};
 			name = Release;
 		};
+		53ACF99E1FDA0FB30091FE2B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 94H887LKV9;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		53ACF99F1FDA0FB30091FE2B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 94H887LKV9;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -336,6 +418,15 @@
 			buildConfigurations = (
 				53781E631FD8947F001F70AE /* Debug */,
 				53781E641FD8947F001F70AE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		53ACF99D1FDA0FB30091FE2B /* Build configuration list for PBXNativeTarget "setuid" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				53ACF99E1FDA0FB30091FE2B /* Debug */,
+				53ACF99F1FDA0FB30091FE2B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

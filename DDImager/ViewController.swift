@@ -19,7 +19,7 @@
 import Cocoa
 
 var prefixes: [String] = ["B", "kB", "MB", "GB", "TB", "PB", "EB"]
-var debug = false
+var debug = true
 
 class ValueCarrier {
     var fileSize: UInt64
@@ -51,7 +51,7 @@ func runDDTask(input: String, output: String, arguments: String, parentVC: Any) 
         print("Error: \(error)")
     }
     
-    GlobalCarrier = ValueCarrier(withSize: fileSize, command: "{ dd if='\(input)' \(arguments) | '\(Bundle.main.url(forResource: "pv", withExtension: nil)?.absoluteString.replacingOccurrences(of: "file://", with: "") ?? "/usr/local/bin/pv")' --size \(fileSize) -b -n | dd of='\(output)' \(arguments); } 2>&1")
+    GlobalCarrier = ValueCarrier(withSize: fileSize, command: "{ dd if='\(input)' \(arguments) | '\(Bundle.main.path(forResource: "pv", ofType: nil) ?? "/usr/local/bin/pv")' --size \(fileSize) -b -n | dd of='\(output)' \(arguments); } 2>&1")
     (parentVC as! NSViewController).performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "openProgress"), sender: GlobalCarrier)
     
 }
@@ -186,7 +186,7 @@ class ProgressViewController: NSViewController {
         if (task.isRunning) {
             let qtask = Process();
             qtask.launchPath = "/bin/bash"
-            qtask.arguments = ["-c", "ps -ax | grep 'pv --size \(fileSize)' | grep -v grep | grep -o '^[0-9]*'"]
+            qtask.arguments = ["-c", "ps -ax | grep 'setuid' | grep -v grep | grep -o '^[0-9]*'"]
             
             let pipe = Pipe()
             qtask.standardOutput = pipe
@@ -205,7 +205,7 @@ class ProgressViewController: NSViewController {
             if (ret != 0) {
                 print("Error \(ret)");
             }
-            Timer(timeInterval: TimeInterval(0.2), repeats: false, block: {timer in
+            _ = Timer(timeInterval: TimeInterval(0.2), repeats: false, block: {timer in
                 self.progress.doubleValue = 0.0
             })
         }
@@ -224,19 +224,20 @@ class ProgressViewController: NSViewController {
             print("Uh oh.")
         }
         task = STPrivilegedTask()
-        task.launchPath = "/bin/bash"
-        task.arguments = ["-c", command]
+        task.launchPath = Bundle.main.path(forResource: "setuid", ofType: nil)!
+        task.arguments = ["/bin/bash", "-c", command]
         NotificationCenter.default.addObserver(self, selector: #selector(self.finished), name: NSNotification.Name(rawValue: STPrivilegedTaskDidTerminateNotification), object: nil)
         let err = task.launch()
         if err != noErr {
             print("Error: \(err)")
         }
         let readHandle = task.outputFileHandle
+        
         NotificationCenter.default.addObserver(self, selector: #selector(self.parseData), name: FileHandle.readCompletionNotification, object: readHandle)
         NotificationCenter.default.addObserver(self, selector: #selector(self.stopProcess), name: NSNotification.Name(rawValue: "STApplicationWillTerminate"), object: nil)
         readHandle!.readInBackgroundAndNotify()
         
-        print(task.arguments![1])
+        print(task.arguments![2])
         
         
         //progress.startAnimation(self)
