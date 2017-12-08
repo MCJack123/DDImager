@@ -19,7 +19,7 @@
 import Cocoa
 
 var prefixes: [String] = ["B", "kB", "MB", "GB", "TB", "PB", "EB"]
-var debug = true
+var debug = false
 
 class ValueCarrier {
     var fileSize: UInt64
