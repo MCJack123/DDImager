@@ -17,3 +17,5 @@
 //
 
 #import "STPrivilegedTask.h"
+#import "BlockBasedSelector.h"
+#include <unistd.h>

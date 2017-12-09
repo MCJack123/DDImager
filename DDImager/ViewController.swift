@@ -19,6 +19,7 @@
 import Cocoa
 
 var prefixes: [String] = ["B", "kB", "MB", "GB", "TB", "PB", "EB"]
+let debug = true
 
 class ValueCarrier {
     var fileSize: UInt64
@@ -50,7 +51,7 @@ func runDDTask(input: String, output: String, arguments: String, parentVC: Any) 
         print("Error: \(error)")
     }
     
-    GlobalCarrier = ValueCarrier(withSize: fileSize, command: "{ dd if='\(input)' \(arguments) | '\(Bundle.main.url(forResource: "pv", withExtension: nil)?.absoluteString.replacingOccurrences(of: "file://", with: "") ?? "/usr/local/bin/pv")' --size \(fileSize) -b -n | dd of='\(output)' \(arguments); } 2>&1")
+    GlobalCarrier = ValueCarrier(withSize: fileSize, command: "{ dd if='\(input)' \(arguments) | '\(Bundle.main.url(forResource: "pv", withExtension: nil)?.absoluteString.replacingOccurrences(of: "file://", with: "") ?? "/usr/local/bin/pv")' --size \(fileSize) -b -n -i 0.25 | dd of='\(output)' \(arguments); } 2>&1")
     (parentVC as! NSViewController).performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "openProgress"), sender: GlobalCarrier)
     
 }
@@ -101,6 +102,21 @@ class DDViewController: NSViewController {
         }
     }
     
+    func runAsRoot() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.declareTypes([NSPasteboard.PasteboardType.string], owner: nil)
+        pasteboard.setString(command.stringValue, forType: NSPasteboard.PasteboardType.string)
+        let process = Process()
+        process.launchPath = "/usr/bin/osascript"
+        process.arguments = ["-e", "do shell script \"\(Bundle.main.executablePath!)\" with administrator privileges"]
+        process.terminationHandler = {reason in
+            NSApplication.shared.terminate(self)
+        }
+        process.launch()
+        process.waitUntilExit()
+    }
+    
+    
     @IBAction func runCommand(_ sender: Any) {
         let newCommand = command.stringValue.replacingOccurrences(of: "\\ ", with: "\\").components(separatedBy: " ")
         var input = ""
@@ -111,7 +127,17 @@ class DDViewController: NSViewController {
                 input = arg.replacingOccurrences(of: "if=", with: "").replacingOccurrences(of: "\\", with: " ")
             } else if arg.hasPrefix("of=") {
                 output = arg.replacingOccurrences(of: "of=", with: "").replacingOccurrences(of: "\\", with: " ")
-            } else if arg != "dd" {
+            } else if arg == "sudo" && getuid() != 0 {
+                let alert = NSAlert()
+                alert.messageText = "Application will relaunch as root"
+                alert.informativeText = "To copy the file to the destination as root, the application needs to relaunch. The command to be run will be copied to the clipboard. After typing an administrator password, the program will relaunch."
+                alert.addButton(withTitle: "OK")
+                alert.addButton(withTitle: "Cancel")
+                let retval = alert.runModal().rawValue - 1000
+                print(retval)
+                if retval == 0 {runAsRoot()}
+                else {return}
+            } else if arg != "dd" && arg != "sudo" {
                 arguments.append(arg.replacingOccurrences(of: "\\", with: " "))
             }
         }
@@ -135,16 +161,25 @@ class ProgressViewController: NSViewController {
     public var fileSize: UInt64 = 0
     public var command: String = ""
     var timer: Timer? = nil
-    var task: STPrivilegedTask = STPrivilegedTask()
+    var task: Process = Process()
     var processHasBeenStopped: Bool = false
+    //var obs1: NSObjectProtocol?
+    //var obs2: NSObjectProtocol?
+    var pipe: Pipe = Pipe()
+    var handle: FileHandle = FileHandle()
     
-    @objc func parseData(_ notification: Notification) {
+    @objc func parseData(_ pipe: FileHandle) {
         //print("Got data")
-        let data = notification.userInfo![NSFileHandleNotificationDataItem] as? Data
+        //let data = notification.userInfo![NSFileHandleNotificationDataItem] as? Data
         //print("Got data 2")
-        if (data != nil && !(data!.isEmpty)) {
+        //if (data != nil && !(data!.isEmpty)) {
             //print("Not empty")
-            if let line = String(data: data!, encoding: String.Encoding.utf8)?.replacingOccurrences(of: "\n", with: "") {
+            if let line = String(data: pipe.availableData, encoding: String.Encoding.utf8)?.replacingOccurrences(of: "\n", with: "") {
+                if line == "" {
+                    print("No information")
+                    task.terminate()
+                    return
+                }
                 //print("Can be string: \(line)")
                 if (UInt64(line) != nil) {
                     //print("Updating data")
@@ -153,37 +188,49 @@ class ProgressViewController: NSViewController {
                         self.totalCopied = UInt64(line)!
                         self.refreshData()
                         //print("Updated data")
-                        (notification.object! as! FileHandle).readInBackgroundAndNotify()
+                        //(notification.object! as! FileHandle).readInBackgroundAndNotify()
                     //}
                     //return
                 } else if line.contains("records") {
                     self.lastCopied = self.fileSize - self.totalCopied
                     self.totalCopied = self.fileSize
                     self.refreshData()
-                    (notification.object! as! FileHandle).readInBackgroundAndNotify()
+                    //(notification.object! as! FileHandle).readInBackgroundAndNotify()
+                } else if line.contains("Permission denied") {
+                    let alert = NSAlert()
+                    alert.informativeText = line
+                    alert.messageText = "You do not have permission to write to this file. Try again using sudo, or, if the problem persists, make sure any output disk is unmounted."
+                    alert.runModal()
+                    if task.isRunning {task.waitUntilExit()}
+                    finished(nil)
                 } else {
-                    print("Not a number")
+                    print("Not a number: \(line)")
+                    //(notification.object! as! FileHandle).readInBackgroundAndNotify()
                     return
                 }
             } else {
-                print("Error decoding data: \(data!)")
+                print("Error decoding data: \(pipe.availableData)")
+                //(notification.object! as! FileHandle).readInBackgroundAndNotify()
                 return
             }
-        } else {
-            print("Data is empty")
-            return
-        }
+        //} else {
+        //    print("Data is empty")
+        //    (notification.object! as! FileHandle).readInBackgroundAndNotify()
+        //    return
+        //}
     }
     
     @objc func finished(_ sender: Any?) {
         print("Finished")
+        //NotificationCenter.default.removeObserver(obs1!)
+        //NotificationCenter.default.removeObserver(obs2!)
         self.view.window?.close()
         self.performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "return"), sender: nil)
     }
     
     @objc @IBAction func stopProcess(_ sender: Any?) {
         if (task.isRunning) {
-            let qtask = Process();
+            /*let qtask = Process();
             qtask.launchPath = "/bin/bash"
             qtask.arguments = ["-c", "ps -ax | grep 'pv --size \(fileSize)' | grep -v grep | grep -o '^[0-9]*'"]
             
@@ -204,10 +251,18 @@ class ProgressViewController: NSViewController {
             if (ret != 0) {
                 print("Error \(ret)");
             }
-            Timer(timeInterval: TimeInterval(0.2), repeats: false, block: {timer in
+            */
+            task.terminate()
+            _ = Timer(timeInterval: TimeInterval(0.2), repeats: false, block: {timer in
                 self.progress.doubleValue = 0.0
             })
+            
+            
         }
+        pipe = Pipe()
+        handle = FileHandle()
+        //task = Process()
+        finished(nil)
         //self.view.window?.close()
         //self.performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "return"), sender: nil)
     }
@@ -222,21 +277,22 @@ class ProgressViewController: NSViewController {
         if (!STPrivilegedTask.authorizationFunctionAvailable()) {
             print("Uh oh.")
         }
-        task = STPrivilegedTask()
+        task = Process()
         task.launchPath = "/bin/bash"
         task.arguments = ["-c", command]
-        NotificationCenter.default.addObserver(self, selector: #selector(self.finished), name: NSNotification.Name(rawValue: STPrivilegedTaskDidTerminateNotification), object: nil)
-        let err = task.launch()
-        if err != noErr {
-            print("Error: \(err)")
-        }
-        let readHandle = task.outputFileHandle
-        NotificationCenter.default.addObserver(self, selector: #selector(self.parseData), name: FileHandle.readCompletionNotification, object: readHandle)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.stopProcess), name: NSNotification.Name(rawValue: "STApplicationWillTerminate"), object: nil)
-        readHandle!.readInBackgroundAndNotify()
+        
+        pipe = Pipe()
+        task.standardOutput = pipe
+        handle = pipe.fileHandleForReading
+        
+        handle.readabilityHandler = parseData
+        /*handle.waitForDataInBackgroundAndNotify()
+        
+        obs1 = NotificationCenter.default.addObserver(forName: NSNotification.Name.NSFileHandleDataAvailable, object: handle, queue: nil, using: parseData)
+        obs2 = NotificationCenter.default.addObserver(forName: Process.didTerminateNotification, object: task, queue: nil, using: finished)*/
+        task.launch()
         
         print(task.arguments![1])
-        
         
         //progress.startAnimation(self)
         //while fileSize == 0 {usleep(10000)}
@@ -270,7 +326,7 @@ class ProgressViewController: NSViewController {
                 return
             }
             self.totalCopiedText.stringValue = bytesToHuman(self.totalCopied)
-            self.speedText.stringValue = bytesToHuman(self.lastCopied) + "/s"
+            self.speedText.stringValue = bytesToHuman(self.lastCopied * 4) + "/s"
             if (self.totalCopied > self.fileSize || self.fileSize == 0) {self.progress.startAnimation(self)}
             else {self.progress.stopAnimation(self); self.progress.doubleValue = (Float64(self.totalCopied) / Float64(self.fileSize)) * 100}
         }
