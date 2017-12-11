@@ -51,7 +51,7 @@ func runDDTask(input: String, output: String, arguments: String, parentVC: Any) 
         print("Error: \(error)")
     }
     
-    GlobalCarrier = ValueCarrier(withSize: fileSize, command: "{ dd if='\(input)' \(arguments) | '\(Bundle.main.url(forResource: "pv", withExtension: nil)?.absoluteString.replacingOccurrences(of: "file://", with: "") ?? "/usr/local/bin/pv")' --size \(fileSize) -b -n -i 0.25 | dd of='\(output)' \(arguments); } 2>&1")
+	GlobalCarrier = ValueCarrier(withSize: fileSize, command: "{ dd if='\(input)' \(arguments) | '\(Bundle.main.path(forResource: "pv", ofType: nil) ?? "/usr/local/bin/pv")' --size \(fileSize) -b -n -i 0.25 | dd of='\(output)' \(arguments); } 2>&1")
     (parentVC as! NSViewController).performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "openProgress"), sender: GlobalCarrier)
     
 }
@@ -108,11 +108,12 @@ class DDViewController: NSViewController {
         pasteboard.setString(command.stringValue, forType: NSPasteboard.PasteboardType.string)
         let process = Process()
         process.launchPath = "/usr/bin/osascript"
-        process.arguments = ["-e", "do shell script \"\(Bundle.main.executablePath!)\" with administrator privileges"]
+        process.arguments = ["-e", "do shell script \"\(Bundle.main.executablePath!.replacingOccurrences(of: " ", with: "\\\\ "))\" with administrator privileges"]
         process.terminationHandler = {reason in
             NSApplication.shared.terminate(self)
         }
         process.launch()
+        self.view.window?.close()
         process.waitUntilExit()
     }
     
@@ -167,6 +168,7 @@ class ProgressViewController: NSViewController {
     //var obs2: NSObjectProtocol?
     var pipe: Pipe = Pipe()
     var handle: FileHandle = FileHandle()
+    var mostCopied: UInt64 = 0
     
     @objc func parseData(_ pipe: FileHandle) {
         //print("Got data")
@@ -184,9 +186,16 @@ class ProgressViewController: NSViewController {
                 if (UInt64(line) != nil) {
                     //print("Updating data")
                     //DispatchQueue.main.async {
+                    if (UInt64(line)! > self.mostCopied * 5 && mostCopied > 1000000) || UInt64(line)! > fileSize {
+                    	print("Error in reporting! \(line)")
+					} else {
                         self.lastCopied = UInt64(line)! - self.totalCopied
                         self.totalCopied = UInt64(line)!
                         self.refreshData()
+                        if UInt64(line)! > mostCopied {
+                        	mostCopied = UInt64(line)!
+						}
+					}
                         //print("Updated data")
                         //(notification.object! as! FileHandle).readInBackgroundAndNotify()
                     //}
@@ -224,6 +233,10 @@ class ProgressViewController: NSViewController {
         print("Finished")
         //NotificationCenter.default.removeObserver(obs1!)
         //NotificationCenter.default.removeObserver(obs2!)
+        if task.isRunning {task.terminate()}
+        _ = Timer(timeInterval: TimeInterval(1), repeats: false, block: {timer in
+        	if self.task.isRunning {print("Task is still running!")}
+		})
         self.view.window?.close()
         self.performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "return"), sender: nil)
     }
@@ -252,13 +265,19 @@ class ProgressViewController: NSViewController {
                 print("Error \(ret)");
             }
             */
-            task.terminate()
-            _ = Timer(timeInterval: TimeInterval(0.2), repeats: false, block: {timer in
+            //task.terminate()
+            //task.interrupt()
+			
+            /*_ = Timer(timeInterval: TimeInterval(0.2), repeats: false, block: {timer in
                 self.progress.doubleValue = 0.0
-            })
+            })*/
             
             
         }
+        task.interrupt()
+        //task.standardOutput = nil
+		//task.standardError = nil
+		handle.readabilityHandler = nil
         pipe = Pipe()
         handle = FileHandle()
         //task = Process()
