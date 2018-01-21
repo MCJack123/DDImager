@@ -349,6 +349,8 @@ class ProgressViewController: NSViewController {
 			var diskinfo = DADiskCopyDescription(indisk)
 			var fspath = CFDictionaryGetValue(diskinfo,
                 kDADiskDescriptionVolumePathKey);
+			self.fileSize = UInt64(CFDictionaryGetValue(diskinfo, kDADiskDescriptionMediaSizeKey))
+			
 			var buf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
         	if (CFURLGetFileSystemRepresentation(fspath, false, buf, 1024)) {
 				DADiskUnmount(indisk, kDADiskUnmountOptionDefault, { (disk: DADiskRef, dissenter: DADissenter?, context: UnsafeMutableRawPointer?) in
