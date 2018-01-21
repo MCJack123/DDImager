@@ -20,6 +20,7 @@ import Cocoa
 
 var prefixes: [String] = ["B", "kB", "MB", "GB", "TB", "PB", "EB"]
 let debug = true
+var log = "";
 
 class ValueCarrier {
     var fileSize: UInt64
@@ -71,6 +72,32 @@ class ViewController: NSViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+		for i in 1..CommandLine.argc {
+			if CommandLine.arguments[i] == "-c" {
+				let newCommand = CommandLine.arguments[i+1].replacingOccurrences(of: "\\ ", with: "\\").components(separatedBy: " ")
+        		var input = ""
+        		var output = ""
+        		var arguments: [String] = []
+        		for arg in newCommand {
+        		    if arg.hasPrefix("if=") {
+        		        input = arg.replacingOccurrences(of: "if=", with: "").replacingOccurrences(of: "\\", with: " ")
+        		    } else if arg.hasPrefix("of=") {
+         		       	output = arg.replacingOccurrences(of: "of=", with: "").replacingOccurrences(of: "\\", with: " ")
+        		    } else if arg == "sudo" && getuid() != 0 {
+          		      	return;
+           		 	} else if arg != "dd" && arg != "sudo" {
+           		     	arguments.append(arg.replacingOccurrences(of: "\\", with: " "))
+           		 	}
+        		}
+        		var args = ""
+        		for arg in arguments {
+            		if args == "" {args = arg}
+            		else {args += " " + arg}
+        		}
+        		runDDTask(input: input, output: output, arguments: args, parentVC: self)
+        		self.view.window?.close()
+			}
+		}
 
         // Do any additional setup after loading the view.
     }
@@ -103,12 +130,12 @@ class DDViewController: NSViewController {
     }
     
     func runAsRoot() {
-        let pasteboard = NSPasteboard.general
-        pasteboard.declareTypes([NSPasteboard.PasteboardType.string], owner: nil)
-        pasteboard.setString(command.stringValue, forType: NSPasteboard.PasteboardType.string)
+        //let pasteboard = NSPasteboard.general
+        //pasteboard.declareTypes([NSPasteboard.PasteboardType.string], owner: nil)
+        //pasteboard.setString(command.stringValue, forType: NSPasteboard.PasteboardType.string)
         let process = Process()
         process.launchPath = "/usr/bin/osascript"
-        process.arguments = ["-e", "do shell script \"\(Bundle.main.executablePath!.replacingOccurrences(of: " ", with: "\\\\ "))\" with administrator privileges"]
+        process.arguments = ["-e", "do shell script \"\(Bundle.main.executablePath!.replacingOccurrences(of: " ", with: "\\\\ ")) -c \(command.stringValue.replacingOccurrences(of: " ", with: "\\\\ "))\" with administrator privileges"]
         process.terminationHandler = {reason in
             NSApplication.shared.terminate(self)
         }
@@ -177,7 +204,9 @@ class ProgressViewController: NSViewController {
         //if (data != nil && !(data!.isEmpty)) {
             //print("Not empty")
             if let line = String(data: pipe.availableData, encoding: String.Encoding.utf8)?.replacingOccurrences(of: "\n", with: "") {
-                if line == "" {
+                log += line + "\n"
+				NotificationCenter.default.post(name: NSNotification.Name(rawValue: "DDLogAvailable"), object: nil)
+				if line == "" {
                     print("No information")
                     task.terminate()
                     return
@@ -206,10 +235,12 @@ class ProgressViewController: NSViewController {
                     self.refreshData()
                     //(notification.object! as! FileHandle).readInBackgroundAndNotify()
                 } else if line.contains("Permission denied") {
-                    let alert = NSAlert()
-                    alert.informativeText = line
-                    alert.messageText = "You do not have permission to write to this file. Try again using sudo, or, if the problem persists, make sure any output disk is unmounted."
-                    alert.runModal()
+                    DispatchQueue.main.sync {
+						let alert = NSAlert()
+                    	alert.informativeText = line
+                    	alert.messageText = "You do not have permission to write to this file. Try again using sudo, or, if the problem persists, make sure any output disk is unmounted."
+                    	alert.runModal()
+					}
                     if task.isRunning {task.waitUntilExit()}
                     finished(nil)
                 } else {
@@ -237,6 +268,7 @@ class ProgressViewController: NSViewController {
         _ = Timer(timeInterval: TimeInterval(1), repeats: false, block: {timer in
         	if self.task.isRunning {print("Task is still running!")}
 		})
+		log = ""
         self.view.window?.close()
         self.performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "return"), sender: nil)
     }
@@ -299,6 +331,7 @@ class ProgressViewController: NSViewController {
         task = Process()
         task.launchPath = "/bin/bash"
         task.arguments = ["-c", command]
+		task.terminationHandler = finished
         
         pipe = Pipe()
         task.standardOutput = pipe
@@ -359,3 +392,13 @@ class ProgressViewController: NSViewController {
     
 }
 
+class LogViewController : NSViewController {
+	override func viewDidLoad() {
+		super.viewDidLoad()
+		NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "DDLogAvailable"), object: nil, using: (Notification) -> Void {
+			self.logView.stringValue = log
+		})
+		logView.stringValue = log
+	}
+	
+	@IBOutlet weak var logView: NSTextView!
