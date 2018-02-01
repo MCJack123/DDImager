@@ -430,6 +430,7 @@ class ProgressViewController: NSViewController {
             let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
             bad = false
             if (diskinfo![kDADiskDescriptionMediaWholeKey] as! Int == 0) {
+                if (fspath != nil) {
             if (CFURLGetFileSystemRepresentation(fspath as! CFURL, false, buf, 1024)) {
                 DADiskUnmount(indisk!, DADiskUnmountOptions(kDADiskUnmountOptionDefault), { (disk: DADisk, dissenter: DADissenter?, context: UnsafeMutableRawPointer?) in
                     if ((dissenter) != nil) {
@@ -458,6 +459,7 @@ class ProgressViewController: NSViewController {
 		}
         }
         }
+        }
         let outputDisk = GlobalCarrier?.outputDisk
         if (outputDisk?.hasPrefix("/dev/disk"))! {
         let outdata = outputDisk!.data(using: String.Encoding.utf8, allowLossyConversion: false)
@@ -469,6 +471,7 @@ class ProgressViewController: NSViewController {
             let fspath = diskinfo![kDADiskDescriptionVolumePathKey]
             let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
             if diskinfo![kDADiskDescriptionMediaWholeKey] as! Int == 0 {
+                if (fspath != nil) {
             if (CFURLGetFileSystemRepresentation(fspath as! CFURL, false, buf, 1024)) {
                 bad = false
                 DADiskUnmount(outdisk!, DADiskUnmountOptions(kDADiskUnmountOptionDefault), { (disk: DADisk, dissenter: DADissenter?, context: UnsafeMutableRawPointer?) in
@@ -496,6 +499,7 @@ class ProgressViewController: NSViewController {
         	}
 			buf.deallocate(capacity: 1024)
 		}
+        }
         }
         }
 	    
@@ -577,11 +581,11 @@ class LogViewController : NSViewController {
 		super.viewDidLoad()
         NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "DDLogAvailable"), object: nil, queue: nil, using: { (notif: Notification) in
             DispatchQueue.main.async {
-                self.logView.stringValue = log
+                self.logView.string = log
             }
 		})
-        logView.stringValue = log
+        logView.string = log
 	}
 	
-    @IBOutlet weak var logView: NSTextField!
+    @IBOutlet weak var logView: NSTextView!
 }
