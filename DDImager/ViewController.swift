@@ -17,17 +17,27 @@
 //
 
 import Cocoa
+import DiskArbitration
 
 var prefixes: [String] = ["B", "kB", "MB", "GB", "TB", "PB", "EB"]
 let debug = true
+var log = ""
+var newlog = ""
+var bad = false
+var preLaunched = false
+var preRun = false
 
 class ValueCarrier {
     var fileSize: UInt64
     var command: String
+	var inputDisk: String
+	var outputDisk: String
     
-    init(withSize size: UInt64, command c: String) {
+    init(withSize size: UInt64, command c: String, input id: String, output od: String) {
         self.fileSize = size
         self.command = c
+		self.inputDisk = id
+		self.outputDisk = od
     }
 }
 
@@ -42,16 +52,33 @@ extension Decimal {
     }
 }
 
-func runDDTask(input: String, output: String, arguments: String, parentVC: Any) {
-    var fileSize: UInt64 = 0
-    do {
-        let attr = try FileManager.default.attributesOfItem(atPath: input.replacingOccurrences(of: "\\ ", with: " "))
-        fileSize = attr[FileAttributeKey.size] as! UInt64
-    } catch {
-        print("Error: \(error)")
+extension NSTextView {
+    func appendText(line: String) {
+        DispatchQueue.main.async {
+            let attrDict = [NSAttributedStringKey.font: NSFont.systemFont(ofSize: 18.0)]
+            let astring = NSAttributedString(string: "\(line)\n", attributes: attrDict)
+            self.textStorage?.append(astring)
+            let loc = self.string.lengthOfBytes(using: String.Encoding.utf8)
+            
+            let range = NSRange(location: loc, length: 0)
+            self.scrollRangeToVisible(range)
+        }
     }
-    
-	GlobalCarrier = ValueCarrier(withSize: fileSize, command: "{ dd if='\(input)' \(arguments) | '\(Bundle.main.path(forResource: "pv", ofType: nil) ?? "/usr/local/bin/pv")' --size \(fileSize) -b -n -i 0.25 | dd of='\(output)' \(arguments); } 2>&1")
+}
+
+func runDDTask(input: String, output: String, fileSize: UInt64?, arguments: String, parentVC: Any) {
+    var finalFileSize: UInt64 = 0
+    if fileSize == nil {
+		do {
+        	let attr = try FileManager.default.attributesOfItem(atPath: input.replacingOccurrences(of: "\\ ", with: " "))
+        	finalFileSize = attr[FileAttributeKey.size] as! UInt64
+    	} catch {
+        	print("Error: \(error)")
+    	}
+    } else {
+        finalFileSize = fileSize!
+    }
+    GlobalCarrier = ValueCarrier(withSize: finalFileSize, command: "{ dd if='\(input)' \(arguments) | '\(Bundle.main.path(forResource: "pv", ofType: nil) ?? "/usr/local/bin/pv")' \(fileSize == nil ? "" : "--size \(String(describing: fileSize))") -b -n -i 0.25 | dd of='\(output)' \(arguments); } 2>&1", input: input, output: output)
     (parentVC as! NSViewController).performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "openProgress"), sender: GlobalCarrier)
     
 }
@@ -68,11 +95,70 @@ func bytesToHuman(_ bytes: UInt64) -> String {
 }
 
 class ViewController: NSViewController {
+    
+    var running = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        if !preLaunched {
+		for i in 0...CommandLine.argc-1 {
+			if CommandLine.arguments[Int(i)] == "-c" {
+				let newCommand = CommandLine.arguments[Int(i+1)].replacingOccurrences(of: "\\ ", with: "\\").components(separatedBy: " ")
+        		var input = ""
+        		var output = ""
+				var size: UInt64? = nil
+        		var arguments: [String] = []
+        		for arg in newCommand {
+        		    if arg.hasPrefix("if=") {
+        		        input = arg.replacingOccurrences(of: "if=", with: "").replacingOccurrences(of: "\\", with: " ")
+        		    } else if arg.hasPrefix("of=") {
+         		       	output = arg.replacingOccurrences(of: "of=", with: "").replacingOccurrences(of: "\\", with: " ")
+        		    } else if arg.hasPrefix("size=") {
+						size = UInt64(arg.replacingOccurrences(of: "size=", with: ""))
+            		} else if arg == "sudo" && getuid() != 0 {
+          		      	return;
+           		 	} else if arg != "dd" && arg != "sudo" {
+           		     	arguments.append(arg.replacingOccurrences(of: "\\", with: " "))
+           		 	}
+        		}
+        		var args = ""
+        		for arg in arguments {
+            		if args == "" {args = arg}
+            		else {args += " " + arg}
+        		}
+                running = true
+                preRun = true
+                self.view.window?.close()
+                self.dismiss(nil)
+                DispatchQueue.main.async {
+                    runDDTask(input: input, output: output, fileSize: size, arguments: args, parentVC: self)
+                }
+                print("Running")
+        		break
+			}
+		}
+        }
+        preLaunched = true
 
         // Do any additional setup after loading the view.
+    }
+    
+    override func viewWillAppear() {
+        if running {
+            print("will")
+            DispatchQueue.main.async {
+                self.view.window!.close()
+            }
+        }
+    }
+    
+    override func viewDidAppear() {
+        if running {
+            print("did")
+            DispatchQueue.main.async {
+                self.view.window!.close()
+            }
+        }
     }
 
     override var representedObject: Any? {
@@ -103,12 +189,12 @@ class DDViewController: NSViewController {
     }
     
     func runAsRoot() {
-        let pasteboard = NSPasteboard.general
-        pasteboard.declareTypes([NSPasteboard.PasteboardType.string], owner: nil)
-        pasteboard.setString(command.stringValue, forType: NSPasteboard.PasteboardType.string)
+        //let pasteboard = NSPasteboard.general
+        //pasteboard.declareTypes([NSPasteboard.PasteboardType.string], owner: nil)
+        //pasteboard.setString(command.stringValue, forType: NSPasteboard.PasteboardType.string)
         let process = Process()
         process.launchPath = "/usr/bin/osascript"
-        process.arguments = ["-e", "do shell script \"\(Bundle.main.executablePath!.replacingOccurrences(of: " ", with: "\\\\ "))\" with administrator privileges"]
+        process.arguments = ["-e", "do shell script \"\(Bundle.main.executablePath!.replacingOccurrences(of: " ", with: "\\\\ ")) -c \(command.stringValue.replacingOccurrences(of: " ", with: "\\\\ "))\" with administrator privileges"]
         process.terminationHandler = {reason in
             NSApplication.shared.terminate(self)
         }
@@ -122,22 +208,26 @@ class DDViewController: NSViewController {
         let newCommand = command.stringValue.replacingOccurrences(of: "\\ ", with: "\\").components(separatedBy: " ")
         var input = ""
         var output = ""
+		var size: UInt64? = nil
         var arguments: [String] = []
         for arg in newCommand {
             if arg.hasPrefix("if=") {
                 input = arg.replacingOccurrences(of: "if=", with: "").replacingOccurrences(of: "\\", with: " ")
             } else if arg.hasPrefix("of=") {
                 output = arg.replacingOccurrences(of: "of=", with: "").replacingOccurrences(of: "\\", with: " ")
+			} else if arg.hasPrefix("size=") {
+				size = UInt64(arg.replacingOccurrences(of: "size=", with: ""))
             } else if arg == "sudo" && getuid() != 0 {
                 let alert = NSAlert()
                 alert.messageText = "Application will relaunch as root"
-                alert.informativeText = "To copy the file to the destination as root, the application needs to relaunch. The command to be run will be copied to the clipboard. After typing an administrator password, the program will relaunch."
+                alert.informativeText = "To copy the file to the destination as root, the application needs to relaunch. After typing an administrator password, the program will relaunch."
                 alert.addButton(withTitle: "OK")
                 alert.addButton(withTitle: "Cancel")
                 let retval = alert.runModal().rawValue - 1000
-                print(retval)
+                //print(retval)
                 if retval == 0 {runAsRoot()}
                 else {return}
+                NSApplication.shared.terminate(self)
             } else if arg != "dd" && arg != "sudo" {
                 arguments.append(arg.replacingOccurrences(of: "\\", with: " "))
             }
@@ -147,7 +237,7 @@ class DDViewController: NSViewController {
             if args == "" {args = arg}
             else {args += " " + arg}
         }
-        runDDTask(input: input, output: output, arguments: args, parentVC: self)
+        runDDTask(input: input, output: output, fileSize: size, arguments: args, parentVC: self)
         self.view.window?.close()
     }
     
@@ -159,8 +249,9 @@ class ProgressViewController: NSViewController {
     
     public var lastCopied: UInt64 = 0
     public var totalCopied: UInt64 = 0
-    public var fileSize: UInt64 = 0
+    public var fileSize: UInt64? = 0
     public var command: String = ""
+    var done = false
     var timer: Timer? = nil
     var task: Process = Process()
     var processHasBeenStopped: Bool = false
@@ -177,16 +268,19 @@ class ProgressViewController: NSViewController {
         //if (data != nil && !(data!.isEmpty)) {
             //print("Not empty")
             if let line = String(data: pipe.availableData, encoding: String.Encoding.utf8)?.replacingOccurrences(of: "\n", with: "") {
-                if line == "" {
+                log += line + "\n"
+                newlog = line + "\n"
+				NotificationCenter.default.post(name: NSNotification.Name(rawValue: "DDLogAvailable"), object: nil)
+				if line == "" {
                     print("No information")
-                    task.terminate()
+                    if task.isRunning {task.terminate()}
                     return
                 }
                 //print("Can be string: \(line)")
                 if (UInt64(line) != nil) {
                     //print("Updating data")
                     //DispatchQueue.main.async {
-                    if (UInt64(line)! > self.mostCopied * 5 && mostCopied > 1000000) || UInt64(line)! > fileSize {
+                    if (UInt64(line)! > self.mostCopied * 5 && mostCopied > 1000000) || UInt64(line)! > fileSize! {
                     	print("Error in reporting! \(line)")
 					} else {
                         self.lastCopied = UInt64(line)! - self.totalCopied
@@ -200,18 +294,27 @@ class ProgressViewController: NSViewController {
                         //(notification.object! as! FileHandle).readInBackgroundAndNotify()
                     //}
                     //return
-                } else if line.contains("records") {
-                    self.lastCopied = self.fileSize - self.totalCopied
-                    self.totalCopied = self.fileSize
+                } else if line.contains("records") || line.contains("bytes") {
+                    self.lastCopied = self.fileSize! - self.totalCopied
+                    self.totalCopied = self.fileSize!
                     self.refreshData()
                     //(notification.object! as! FileHandle).readInBackgroundAndNotify()
                 } else if line.contains("Permission denied") {
-                    let alert = NSAlert()
-                    alert.informativeText = line
-                    alert.messageText = "You do not have permission to write to this file. Try again using sudo, or, if the problem persists, make sure any output disk is unmounted."
-                    alert.runModal()
-                    if task.isRunning {task.waitUntilExit()}
+                    
+                    //if task.isRunning {task.terminate()}
+                    handle.readabilityHandler = nil
+                    handle = FileHandle()
+                    task = Process()
+                    DispatchQueue.main.sync {
+                        let alert = NSAlert()
+                        alert.informativeText = line
+                        alert.messageText = "You do not have permission to write to this file. Try again using sudo, or, if the problem persists, make sure any output disk is unmounted."
+                        alert.runModal()
+                    }
                     finished(nil)
+                    
+                    
+                    return
                 } else {
                     print("Not a number: \(line)")
                     //(notification.object! as! FileHandle).readInBackgroundAndNotify()
@@ -230,15 +333,22 @@ class ProgressViewController: NSViewController {
     }
     
     @objc func finished(_ sender: Any?) {
-        print("Finished")
-        //NotificationCenter.default.removeObserver(obs1!)
-        //NotificationCenter.default.removeObserver(obs2!)
-        if task.isRunning {task.terminate()}
-        _ = Timer(timeInterval: TimeInterval(1), repeats: false, block: {timer in
-        	if self.task.isRunning {print("Task is still running!")}
-		})
-        self.view.window?.close()
-        self.performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "return"), sender: nil)
+        if !done {
+            done = true
+            DispatchQueue.main.async {
+                print("Finished")
+                //NotificationCenter.default.removeObserver(obs1!)
+                //NotificationCenter.default.removeObserver(obs2!)
+                if self.task.isRunning {self.task.terminate()}
+                self.handle.readabilityHandler = nil
+                _ = Timer(timeInterval: TimeInterval(1), repeats: false, block: {timer in
+                    if self.task.isRunning {print("Task is still running!")}
+                })
+                log = ""
+                self.view.window?.close()
+                self.performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "return"), sender: nil)
+            }
+        }
     }
     
     @objc @IBAction func stopProcess(_ sender: Any?) {
@@ -281,7 +391,9 @@ class ProgressViewController: NSViewController {
         pipe = Pipe()
         handle = FileHandle()
         //task = Process()
-        finished(nil)
+        DispatchQueue.main.async {
+            self.finished(nil)
+        }
         //self.view.window?.close()
         //self.performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "return"), sender: nil)
     }
@@ -296,9 +408,101 @@ class ProgressViewController: NSViewController {
         if (!STPrivilegedTask.authorizationFunctionAvailable()) {
             print("Uh oh.")
         }
+	    
+        let session = DASessionCreate(kCFAllocatorDefault)
+        DASessionSetDispatchQueue(session!, DispatchQueue.main)
+        let inputDisk = GlobalCarrier?.inputDisk
+        if (inputDisk?.hasPrefix("/dev/disk"))! {
+        let indata = inputDisk!.data(using: String.Encoding.utf8, allowLossyConversion: false)
+        let indisk: DADisk? = indata!.withUnsafeBytes {
+            return DADiskCreateFromBSDName(kCFAllocatorDefault, session!, $0)
+        }
+	    if indisk != nil {
+            let diskinfo = DADiskCopyDescription(indisk!) as? [CFString: AnyObject]
+            let fspath = diskinfo![kDADiskDescriptionVolumePathKey] as? String
+            self.fileSize = diskinfo![kDADiskDescriptionMediaSizeKey] as? UInt64
+            //print(kDADiskDescriptionVolumePathKey)
+            //let infArray = Array(diskinfo!.keys)
+            //for a in infArray {
+                //print(String(a) + ": " + String(describing: diskinfo![a]))
+            //}
+			
+            let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
+            bad = false
+            if (diskinfo![kDADiskDescriptionMediaWholeKey] as! Int == 0) {
+            if (CFURLGetFileSystemRepresentation(fspath as! CFURL, false, buf, 1024)) {
+                DADiskUnmount(indisk!, DADiskUnmountOptions(kDADiskUnmountOptionDefault), { (disk: DADisk, dissenter: DADissenter?, context: UnsafeMutableRawPointer?) in
+                    if ((dissenter) != nil) {
+        				/* Unmount failed. */
+						//buf.deallocate(capacity: 1024)
+                        let buff = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
+                        let diskinfoo = DADiskCopyDescription(disk) as? [AnyHashable: Any]
+                        let fspathh = diskinfoo![kDADiskDescriptionVolumePathKey] as? String
+                        if (CFURLGetFileSystemRepresentation(fspathh as! CFURL, false, buff, 1024)) {
+							DispatchQueue.main.sync {
+                                let alert = NSAlert()
+								alert.messageText = "Error unmounting"
+                                alert.informativeText = "Unmount failed (Error: 0x\(DADissenterGetStatus(dissenter!)) Reason: \(buff)). Please unmount the disk manually.\n"
+								alert.runModal()
+								buff.deallocate(capacity: 1024)
+                                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ProgressExit") , object: nil)
+							}
+        				} else {
+            				print("???")
+        				}
+    				}
+				}, nil)
+        	}
+            if bad {self.finished(nil)}
+			buf.deallocate(capacity: 1024)
+		}
+        }
+        }
+        let outputDisk = GlobalCarrier?.outputDisk
+        if (outputDisk?.hasPrefix("/dev/disk"))! {
+        let outdata = outputDisk!.data(using: String.Encoding.utf8, allowLossyConversion: false)
+        let outdisk: DADisk? = outdata!.withUnsafeBytes {
+            return DADiskCreateFromBSDName(kCFAllocatorDefault, session!, $0)
+        }
+		if outdisk != nil {
+            let diskinfo = DADiskCopyDescription(outdisk!) as? [CFString: AnyObject]
+            let fspath = diskinfo![kDADiskDescriptionVolumePathKey]
+            let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
+            if diskinfo![kDADiskDescriptionMediaWholeKey] as! Int == 0 {
+            if (CFURLGetFileSystemRepresentation(fspath as! CFURL, false, buf, 1024)) {
+                bad = false
+                DADiskUnmount(outdisk!, DADiskUnmountOptions(kDADiskUnmountOptionDefault), { (disk: DADisk, dissenter: DADissenter?, context: UnsafeMutableRawPointer?) in
+                    if ((dissenter) != nil) {
+        				/* Unmount failed. */
+						//buf.deallocate(capacity: 1024)
+                        let buff = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
+                        let diskinfoo = DADiskCopyDescription(disk) as? [CFString: AnyObject]
+                        let fspathh = diskinfoo![kDADiskDescriptionVolumePathKey] as? String
+                        if (CFURLGetFileSystemRepresentation(fspathh as! CFURL, false, buff, 1024)) {
+							DispatchQueue.main.sync {
+                                let alert = NSAlert()
+								alert.messageText = "Error unmounting"
+                                alert.informativeText = "Unmount failed (Error: 0x\(DADissenterGetStatus(dissenter!)) Reason: \(buff)). Please unmount the disk manually.\n"
+								alert.runModal()
+								buff.deallocate(capacity: 1024)
+								NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ProgressExit"), object: nil)
+							}
+        				} else {
+            				print("???")
+        				}
+    				}
+				}, nil)
+                if bad {self.finished(nil)}
+        	}
+			buf.deallocate(capacity: 1024)
+		}
+        }
+        }
+	    
         task = Process()
         task.launchPath = "/bin/bash"
         task.arguments = ["-c", command]
+		task.terminationHandler = finished
         
         pipe = Pipe()
         task.standardOutput = pipe
@@ -315,7 +519,12 @@ class ProgressViewController: NSViewController {
         
         //progress.startAnimation(self)
         //while fileSize == 0 {usleep(10000)}
-        totalSizeText.stringValue = bytesToHuman(fileSize)
+        if fileSize != nil {
+            totalSizeText.stringValue = "/ " + bytesToHuman(fileSize!)
+		} else {
+			totalSizeText.stringValue = ""
+			progress.isIndeterminate = true
+		}
         refreshData()
         //commandText.stringValue = command
         timer = Timer.scheduledTimer(withTimeInterval: TimeInterval(0.5), repeats: true, block: {m in DispatchQueue.main.async {self.refreshData()}})
@@ -344,10 +553,14 @@ class ProgressViewController: NSViewController {
                 self.speedText.stringValue = "0B/s"
                 return
             }
-            self.totalCopiedText.stringValue = bytesToHuman(self.totalCopied)
-            self.speedText.stringValue = bytesToHuman(self.lastCopied * 4) + "/s"
-            if (self.totalCopied > self.fileSize || self.fileSize == 0) {self.progress.startAnimation(self)}
-            else {self.progress.stopAnimation(self); self.progress.doubleValue = (Float64(self.totalCopied) / Float64(self.fileSize)) * 100}
+			self.totalCopiedText.stringValue = bytesToHuman(self.totalCopied)
+			self.speedText.stringValue = bytesToHuman(self.lastCopied * 4) + "/s"
+            if self.fileSize == nil {
+				self.progress.doubleValue = 100.0
+			} else {
+                if (self.totalCopied > self.fileSize! || self.fileSize == 0) {}
+                else {self.progress.doubleValue = (Float64(self.totalCopied) / Float64(self.fileSize!)) * 100}
+			}
         }
     }
     
@@ -359,3 +572,16 @@ class ProgressViewController: NSViewController {
     
 }
 
+class LogViewController : NSViewController {
+	override func viewDidLoad() {
+		super.viewDidLoad()
+        NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "DDLogAvailable"), object: nil, queue: nil, using: { (notif: Notification) in
+            DispatchQueue.main.async {
+                self.logView.stringValue = log
+            }
+		})
+        logView.stringValue = log
+	}
+	
+    @IBOutlet weak var logView: NSTextField!
+}
