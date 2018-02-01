@@ -119,6 +119,12 @@
                                                 <action selector="performZoom:" target="Ady-hI-5gd" id="DIl-cC-cCs"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem isSeparatorItem="YES" id="NU3-vs-GX8"/>
+                                        <menuItem title="Log" keyEquivalent="l" id="EhE-Jk-Qcd">
+                                            <connections>
+                                                <segue destination="bfL-wq-S6k" kind="show" id="tzw-3J-Viu"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem isSeparatorItem="YES" id="eu3-7i-yIM"/>
                                         <menuItem title="Bring All to Front" id="LE2-aR-0XJ">
                                             <modifierMask key="keyEquivalentModifierMask"/>
@@ -151,14 +157,14 @@
                 <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
                 <customObject id="Ady-hI-5gd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="75" y="0.0"/>
+            <point key="canvasLocation" x="714" y="76"/>
         </scene>
         <!--Window Controller-->
         <scene sceneID="R2V-B0-nI4">
             <objects>
                 <windowController id="B8D-0N-5wS" sceneMemberID="viewController">
                     <window key="window" title="DDImager" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA">
-                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
                         <rect key="contentRect" x="644" y="452" width="353" height="219"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
                         <connections>
@@ -311,6 +317,7 @@
                     </view>
                     <connections>
                         <segue destination="hJn-ce-bc0" kind="show" identifier="inputDD" id="VUb-c0-Fll"/>
+                        <segue destination="OIj-tV-ek9" kind="show" identifier="openProgress" id="LhA-C0-Om3"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
@@ -373,7 +380,7 @@
             <objects>
                 <windowController id="hJn-ce-bc0" sceneMemberID="viewController">
                     <window key="window" title="Input dd Command" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="lxx-Jz-NZU">
-                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
                         <rect key="contentRect" x="163" y="199" width="381" height="87"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
                         <connections>
@@ -393,7 +400,7 @@
             <objects>
                 <windowController id="OIj-tV-ek9" sceneMemberID="viewController">
                     <window key="window" title="Progress" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="2p0-ie-eNY">
-                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                        <windowStyleMask key="styleMask" titled="YES" miniaturizable="YES"/>
                         <rect key="contentRect" x="163" y="199" width="480" height="82"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
                         <connections>
@@ -407,6 +414,69 @@
                 <customObject id="rMa-GX-GWP" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="982" y="470"/>
+        </scene>
+        <!--Window Controller-->
+        <scene sceneID="Qpa-ri-l2V">
+            <objects>
+                <windowController id="bfL-wq-S6k" sceneMemberID="viewController">
+                    <window key="window" title="Log" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" titlebarAppearsTransparent="YES" id="neV-0L-BXI">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES" texturedBackground="YES"/>
+                        <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+                        <rect key="contentRect" x="163" y="199" width="200" height="270"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
+                        <connections>
+                            <outlet property="delegate" destination="bfL-wq-S6k" id="zYd-ln-9bB"/>
+                        </connections>
+                    </window>
+                    <connections>
+                        <segue destination="Pit-9l-Ohe" kind="relationship" relationship="window.shadowedContentViewController" id="964-US-zYT"/>
+                    </connections>
+                </windowController>
+                <customObject id="3Ii-Iz-WF1" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1407" y="573"/>
+        </scene>
+        <!--Log View Controller-->
+        <scene sceneID="aUq-Xi-bNb">
+            <objects>
+                <viewController id="Pit-9l-Ohe" customClass="LogViewController" customModule="DDImager" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="n0Y-yQ-BEU">
+                        <rect key="frame" x="0.0" y="0.0" width="200" height="87"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <textField autoresizesSubviews="NO" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" placeholderIntrinsicWidth="infinite" placeholderIntrinsicHeight="infinite" verifyAmbiguity="off" translatesAutoresizingMaskIntoConstraints="NO" id="nYi-PL-59e">
+                                <rect key="frame" x="20" y="20" width="160" height="22"/>
+                                <textFieldCell key="cell" selectable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" drawsBackground="YES" id="cQM-Ke-C5L">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="6Cw-1M-SBX">
+                                <rect key="frame" x="18" y="50" width="27" height="17"/>
+                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="Log" id="MJO-18-kxP">
+                                    <font key="font" metaFont="system"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="nYi-PL-59e" firstAttribute="top" secondItem="n0Y-yQ-BEU" secondAttribute="top" constant="45" id="Epq-vi-tn2"/>
+                            <constraint firstItem="6Cw-1M-SBX" firstAttribute="leading" secondItem="n0Y-yQ-BEU" secondAttribute="leading" constant="20" id="GN2-Js-qX5"/>
+                            <constraint firstAttribute="trailing" secondItem="nYi-PL-59e" secondAttribute="trailing" constant="20" id="enV-2R-eVo"/>
+                            <constraint firstAttribute="bottom" secondItem="nYi-PL-59e" secondAttribute="bottom" constant="20" id="gfO-Il-cHr"/>
+                            <constraint firstItem="nYi-PL-59e" firstAttribute="leading" secondItem="n0Y-yQ-BEU" secondAttribute="leading" constant="20" id="rkz-zZ-LTS"/>
+                            <constraint firstItem="6Cw-1M-SBX" firstAttribute="top" secondItem="n0Y-yQ-BEU" secondAttribute="top" constant="20" id="wvj-bg-xv7"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="logView" destination="nYi-PL-59e" id="mCI-gT-esm"/>
+                    </connections>
+                </viewController>
+                <customObject id="a1F-Xn-fWS" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2109" y="725.5"/>
         </scene>
         <!--Progress View Controller-->
         <scene sceneID="wcf-x2-HGb">
@@ -427,19 +497,8 @@
                                     <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="uaA-O8-cNk">
-                                <rect key="frame" x="67" y="20" width="9" height="17"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="17" id="rCC-0U-qik"/>
-                                </constraints>
-                                <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" title="/" id="rYF-xE-azs">
-                                    <font key="font" metaFont="system"/>
-                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
-                                </textFieldCell>
-                            </textField>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="4Cb-So-jbU">
-                                <rect key="frame" x="74" y="20" width="34" height="17"/>
+                                <rect key="frame" x="70" y="20" width="34" height="17"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="17" id="n97-Gg-9kv"/>
                                 </constraints>
@@ -450,7 +509,7 @@
                                 </textFieldCell>
                             </textField>
                             <progressIndicator wantsLayer="YES" maxValue="100" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="97K-XE-d5S">
-                                <rect key="frame" x="114" y="18" width="277" height="20"/>
+                                <rect key="frame" x="110" y="18" width="281" height="20"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="18" id="VcY-Oh-pkf"/>
                                 </constraints>
@@ -505,31 +564,26 @@
                             <constraint firstAttribute="trailing" secondItem="n8j-gb-Yak" secondAttribute="trailing" constant="20" id="0A8-me-gWl"/>
                             <constraint firstItem="tKF-xe-kub" firstAttribute="leading" secondItem="FEd-wT-elE" secondAttribute="leading" constant="20" id="2KS-K6-hin"/>
                             <constraint firstItem="97K-XE-d5S" firstAttribute="centerY" secondItem="FEd-wT-elE" secondAttribute="centerY" constant="13" id="8wp-9q-A7d"/>
-                            <constraint firstItem="uaA-O8-cNk" firstAttribute="leading" secondItem="tKF-xe-kub" secondAttribute="trailing" constant="5" id="9f2-16-Bia"/>
                             <constraint firstItem="97K-XE-d5S" firstAttribute="leading" secondItem="4Cb-So-jbU" secondAttribute="trailing" constant="8" id="A0A-1l-8UX"/>
                             <constraint firstItem="n8j-gb-Yak" firstAttribute="centerY" secondItem="FEd-wT-elE" secondAttribute="centerY" constant="12.5" id="ANE-Ho-x4K"/>
-                            <constraint firstItem="4Cb-So-jbU" firstAttribute="leading" secondItem="uaA-O8-cNk" secondAttribute="trailing" constant="2" id="CqK-Gm-6zN"/>
                             <constraint firstItem="UbV-1o-SfL" firstAttribute="leading" secondItem="3ht-Py-POQ" secondAttribute="trailing" constant="10" id="HOt-eL-y6N"/>
                             <constraint firstItem="n8j-gb-Yak" firstAttribute="leading" secondItem="97K-XE-d5S" secondAttribute="trailing" constant="8" id="Kvc-0m-ZAm"/>
                             <constraint firstAttribute="bottom" secondItem="4Cb-So-jbU" secondAttribute="bottom" constant="20" id="REI-PA-wh7"/>
                             <constraint firstItem="n8j-gb-Yak" firstAttribute="leading" secondItem="97K-XE-d5S" secondAttribute="trailing" constant="8" id="Swr-Cl-Vih"/>
                             <constraint firstAttribute="bottom" secondItem="tKF-xe-kub" secondAttribute="bottom" constant="20" id="Xsd-WO-S76"/>
-                            <constraint firstItem="uaA-O8-cNk" firstAttribute="leading" secondItem="tKF-xe-kub" secondAttribute="trailing" constant="5" id="ZIV-kB-X1s"/>
                             <constraint firstAttribute="bottom" secondItem="97K-XE-d5S" secondAttribute="bottom" constant="19" id="ZqG-Rt-4LY"/>
                             <constraint firstAttribute="bottom" secondItem="n8j-gb-Yak" secondAttribute="bottom" constant="20" id="cnv-d7-gSD"/>
                             <constraint firstItem="UbV-1o-SfL" firstAttribute="top" secondItem="FEd-wT-elE" secondAttribute="top" constant="20" id="eV0-nF-mb3"/>
                             <constraint firstItem="97K-XE-d5S" firstAttribute="leading" secondItem="4Cb-So-jbU" secondAttribute="trailing" constant="8" id="f8j-gb-EdY"/>
-                            <constraint firstItem="4Cb-So-jbU" firstAttribute="leading" secondItem="uaA-O8-cNk" secondAttribute="trailing" constant="2" id="gge-au-sff"/>
                             <constraint firstItem="n8j-gb-Yak" firstAttribute="top" secondItem="FEd-wT-elE" secondAttribute="top" constant="45" id="i9T-38-SQA"/>
                             <constraint firstItem="4Cb-So-jbU" firstAttribute="centerY" secondItem="FEd-wT-elE" secondAttribute="centerY" constant="12.5" id="iJK-FO-hNb"/>
                             <constraint firstItem="3ht-Py-POQ" firstAttribute="leading" secondItem="FEd-wT-elE" secondAttribute="leading" constant="20" id="nGf-9g-liW"/>
-                            <constraint firstItem="uaA-O8-cNk" firstAttribute="centerY" secondItem="FEd-wT-elE" secondAttribute="centerY" constant="12.5" id="q2d-q5-C9s"/>
                             <constraint firstItem="3ht-Py-POQ" firstAttribute="centerY" secondItem="FEd-wT-elE" secondAttribute="centerY" constant="-12.5" id="vUP-sR-2NV"/>
                             <constraint firstItem="UbV-1o-SfL" firstAttribute="centerY" secondItem="FEd-wT-elE" secondAttribute="centerY" constant="-12.5" id="vqX-1H-ACw"/>
                             <constraint firstItem="tKF-xe-kub" firstAttribute="centerY" secondItem="FEd-wT-elE" secondAttribute="centerY" constant="12.5" id="vuK-xV-scf"/>
                             <constraint firstItem="3ht-Py-POQ" firstAttribute="top" secondItem="FEd-wT-elE" secondAttribute="top" constant="20" id="wX8-3w-Dq9"/>
-                            <constraint firstAttribute="bottom" secondItem="uaA-O8-cNk" secondAttribute="bottom" constant="20" id="x6B-K9-IrU"/>
                             <constraint firstAttribute="trailing" secondItem="3ht-Py-POQ" secondAttribute="trailing" constant="355" id="xDx-mr-7oU"/>
+                            <constraint firstItem="4Cb-So-jbU" firstAttribute="leading" secondItem="tKF-xe-kub" secondAttribute="trailing" constant="8" id="z9f-oA-wM8"/>
                             <constraint firstItem="97K-XE-d5S" firstAttribute="top" secondItem="UbV-1o-SfL" secondAttribute="bottom" constant="8" id="zm8-YD-cTN"/>
                         </constraints>
                     </view>
@@ -551,6 +605,7 @@
         <image name="NSStopProgressFreestandingTemplate" width="11" height="11"/>
     </resources>
     <inferredMetricsTieBreakers>
+        <segue reference="LhA-C0-Om3"/>
         <segue reference="11u-Rp-ruY"/>
     </inferredMetricsTieBreakers>
 </document>
