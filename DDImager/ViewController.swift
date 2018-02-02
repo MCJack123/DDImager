@@ -26,6 +26,8 @@ var newlog = ""
 var bad = false
 var preLaunched = false
 var preRun = false
+var unmounted = false
+var nested = false
 
 class ValueCarrier {
     var fileSize: UInt64
@@ -299,7 +301,7 @@ class ProgressViewController: NSViewController {
                     self.totalCopied = self.fileSize!
                     self.refreshData()
                     //(notification.object! as! FileHandle).readInBackgroundAndNotify()
-                } else if line.contains("Permission denied") {
+                } else if line.contains("Permission denied") || line.contains("Resource busy") {
                     
                     //if task.isRunning {task.terminate()}
                     handle.readabilityHandler = nil
@@ -413,94 +415,125 @@ class ProgressViewController: NSViewController {
         DASessionSetDispatchQueue(session!, DispatchQueue.main)
         let inputDisk = GlobalCarrier?.inputDisk
         if (inputDisk?.hasPrefix("/dev/disk"))! {
-        let indata = inputDisk!.data(using: String.Encoding.utf8, allowLossyConversion: false)
-        let indisk: DADisk? = indata!.withUnsafeBytes {
-            return DADiskCreateFromBSDName(kCFAllocatorDefault, session!, $0)
-        }
-	    if indisk != nil {
-            let diskinfo = DADiskCopyDescription(indisk!) as? [CFString: AnyObject]
-            let fspath = diskinfo![kDADiskDescriptionVolumePathKey] as? String
-            self.fileSize = diskinfo![kDADiskDescriptionMediaSizeKey] as? UInt64
-            //print(kDADiskDescriptionVolumePathKey)
-            //let infArray = Array(diskinfo!.keys)
-            //for a in infArray {
-                //print(String(a) + ": " + String(describing: diskinfo![a]))
-            //}
+            let indata = inputDisk!.data(using: String.Encoding.utf8, allowLossyConversion: false)
+            let indisk: DADisk? = indata!.withUnsafeBytes {
+                return DADiskCreateFromBSDName(kCFAllocatorDefault, session!, $0)
+            }
+            if indisk != nil {
+                let diskinfo = DADiskCopyDescription(indisk!) as? [CFString: AnyObject]
+                var fspath: CFURL?
+                let infArray = Array(diskinfo!.keys)
+                if infArray.contains("DAVolumePath" as CFString) {fspath = (diskinfo!["DAVolumePath" as CFString] as! CFURL)}
+                self.fileSize = diskinfo![kDADiskDescriptionMediaSizeKey] as? UInt64
+                //print(kDADiskDescriptionVolumePathKey)
+                //let infArray = Array(diskinfo!.keys)
+                for a in infArray {
+                    print(String(a) + ": " + String(describing: diskinfo![a]))
+                }
 			
-            let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
-            bad = false
-            if (diskinfo![kDADiskDescriptionMediaWholeKey] as! Int == 0) {
-                if (fspath != nil) {
-            if (CFURLGetFileSystemRepresentation(fspath as! CFURL, false, buf, 1024)) {
-                DADiskUnmount(indisk!, DADiskUnmountOptions(kDADiskUnmountOptionDefault), { (disk: DADisk, dissenter: DADissenter?, context: UnsafeMutableRawPointer?) in
-                    if ((dissenter) != nil) {
-        				/* Unmount failed. */
-						//buf.deallocate(capacity: 1024)
-                        let buff = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
-                        let diskinfoo = DADiskCopyDescription(disk) as? [AnyHashable: Any]
-                        let fspathh = diskinfoo![kDADiskDescriptionVolumePathKey] as? String
-                        if (CFURLGetFileSystemRepresentation(fspathh as! CFURL, false, buff, 1024)) {
-							DispatchQueue.main.sync {
-                                let alert = NSAlert()
-								alert.messageText = "Error unmounting"
-                                alert.informativeText = "Unmount failed (Error: 0x\(DADissenterGetStatus(dissenter!)) Reason: \(buff)). Please unmount the disk manually.\n"
-								alert.runModal()
-								buff.deallocate(capacity: 1024)
-                                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ProgressExit") , object: nil)
-							}
-        				} else {
-            				print("???")
-        				}
-    				}
-				}, nil)
-        	}
-            if bad {self.finished(nil)}
-			buf.deallocate(capacity: 1024)
-		}
-        }
-        }
+                let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
+                bad = false
+                //if (diskinfo![kDADiskDescriptionMediaWholeKey] as! Int == 0) {
+                    if (fspath != nil) {
+                        if (CFURLGetFileSystemRepresentation(fspath , false, buf, 1024)) {
+                            print("Unmounting indisk")
+                            unmounted = false
+                            nested = false
+                            //DispatchQueue.global().async {
+                            DADiskUnmount(indisk!, DADiskUnmountOptions(kDADiskUnmountOptionDefault), { (disk: DADisk, dissenter: DADissenter?, context: UnsafeMutableRawPointer?) in
+                                //DispatchQueue.global().async {
+                                
+                                if ((dissenter) != nil) {
+                                    print(" Unmount failed. ")
+                                    //buf.deallocate(capacity: 1024)
+                                    let buff = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
+                                    let diskinfoo = DADiskCopyDescription(disk) as? [AnyHashable: Any]
+                                    let fspathh = diskinfoo![kDADiskDescriptionVolumePathKey] as? String
+                                    if (CFURLGetFileSystemRepresentation(fspathh as! CFURL, false, buff, 1024)) {
+                                        DispatchQueue.main.sync {
+                                            let alert = NSAlert()
+                                            alert.messageText = "Error unmounting"
+                                            alert.informativeText = "Unmount failed (Error: 0x\(DADissenterGetStatus(dissenter!)) Reason: \(buff)). Please unmount the disk manually.\n"
+                                            alert.runModal()
+                                            buff.deallocate(capacity: 1024)
+                                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ProgressExit") , object: nil)
+                                        }
+                                    } else {
+                                        print("???")
+                                    }
+                                }
+                                print("Done")
+                                unmounted = true
+                                if nested {
+                                    CFRunLoopStop(CFRunLoopGetCurrent())
+                                }
+                                //}
+                            }, nil)
+                            //}
+                            if !unmounted {
+                                nested = true
+                                CFRunLoopRun()
+                                nested = false
+                            }
+                        }
+                        if bad {self.finished(nil)}
+                        buf.deallocate(capacity: 1024)
+                    }
+                //}
+            }
         }
         let outputDisk = GlobalCarrier?.outputDisk
         if (outputDisk?.hasPrefix("/dev/disk"))! {
-        let outdata = outputDisk!.data(using: String.Encoding.utf8, allowLossyConversion: false)
-        let outdisk: DADisk? = outdata!.withUnsafeBytes {
-            return DADiskCreateFromBSDName(kCFAllocatorDefault, session!, $0)
-        }
-		if outdisk != nil {
-            let diskinfo = DADiskCopyDescription(outdisk!) as? [CFString: AnyObject]
-            let fspath = diskinfo![kDADiskDescriptionVolumePathKey]
-            let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
-            if diskinfo![kDADiskDescriptionMediaWholeKey] as! Int == 0 {
-                if (fspath != nil) {
-            if (CFURLGetFileSystemRepresentation(fspath as! CFURL, false, buf, 1024)) {
-                bad = false
-                DADiskUnmount(outdisk!, DADiskUnmountOptions(kDADiskUnmountOptionDefault), { (disk: DADisk, dissenter: DADissenter?, context: UnsafeMutableRawPointer?) in
-                    if ((dissenter) != nil) {
-        				/* Unmount failed. */
-						//buf.deallocate(capacity: 1024)
-                        let buff = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
-                        let diskinfoo = DADiskCopyDescription(disk) as? [CFString: AnyObject]
-                        let fspathh = diskinfoo![kDADiskDescriptionVolumePathKey] as? String
-                        if (CFURLGetFileSystemRepresentation(fspathh as! CFURL, false, buff, 1024)) {
-							DispatchQueue.main.sync {
-                                let alert = NSAlert()
-								alert.messageText = "Error unmounting"
-                                alert.informativeText = "Unmount failed (Error: 0x\(DADissenterGetStatus(dissenter!)) Reason: \(buff)). Please unmount the disk manually.\n"
-								alert.runModal()
-								buff.deallocate(capacity: 1024)
-								NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ProgressExit"), object: nil)
-							}
-        				} else {
-            				print("???")
-        				}
-    				}
-				}, nil)
-                if bad {self.finished(nil)}
-        	}
-			buf.deallocate(capacity: 1024)
-		}
-        }
-        }
+            let outdata = outputDisk!.data(using: String.Encoding.utf8, allowLossyConversion: false)
+            let outdisk: DADisk? = outdata!.withUnsafeBytes {
+                return DADiskCreateFromBSDName(kCFAllocatorDefault, session!, $0)
+            }
+            if outdisk != nil {
+                let diskinfo = DADiskCopyDescription(outdisk!) as? [CFString: AnyObject]
+                let fspath = diskinfo![kDADiskDescriptionVolumePathKey]
+                let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
+                //if diskinfo![kDADiskDescriptionMediaWholeKey] as! Int == 0 {
+                    if (fspath != nil) {
+                        if (CFURLGetFileSystemRepresentation(fspath as! CFURL, false, buf, 1024)) {
+                            bad = false
+                            unmounted = false
+                            nested = false
+                            DADiskUnmount(outdisk!, DADiskUnmountOptions(kDADiskUnmountOptionDefault), { (disk: DADisk, dissenter: DADissenter?, context: UnsafeMutableRawPointer?) in
+                                if ((dissenter) != nil) {
+                                    /* Unmount failed. */
+                                    //buf.deallocate(capacity: 1024)
+                                    let buff = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
+                                    let diskinfoo = DADiskCopyDescription(disk) as? [CFString: AnyObject]
+                                    let fspathh = diskinfoo![kDADiskDescriptionVolumePathKey] as? String
+                                    if (CFURLGetFileSystemRepresentation(fspathh as! CFURL, false, buff, 1024)) {
+                                        DispatchQueue.main.sync {
+                                            let alert = NSAlert()
+                                            alert.messageText = "Error unmounting"
+                                            alert.informativeText = "Unmount failed (Error: 0x\(DADissenterGetStatus(dissenter!)) Reason: \(buff)). Please unmount the disk manually.\n"
+                                            alert.runModal()
+                                            buff.deallocate(capacity: 1024)
+                                            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ProgressExit"), object: nil)
+                                        }
+                                    } else {
+                                        print("???")
+                                    }
+                                }
+                                unmounted = true
+                                if nested {
+                                    CFRunLoopStop(CFRunLoopGetCurrent())
+                                }
+                            }, nil)
+                            if !unmounted {
+                                nested = true
+                                CFRunLoopRun()
+                                nested = false
+                            }
+                            //if bad {self.finished(nil)}
+                        }
+                    }
+                    buf.deallocate(capacity: 1024)
+                //}
+            }
         }
 	    
         task = Process()
@@ -582,6 +615,15 @@ class LogViewController : NSViewController {
         NotificationCenter.default.addObserver(forName: NSNotification.Name(rawValue: "DDLogAvailable"), object: nil, queue: nil, using: { (notif: Notification) in
             DispatchQueue.main.async {
                 self.logView.string = log
+                //  Converted to Swift 4 by Swiftify v4.1.6600 - https://objectivec2swift.com/
+                let scroll: Bool = NSMaxY(self.logView.visibleRect) == NSMaxY(self.logView.bounds)
+                // Append string to textview
+                //logView.textStorage.append(NSAttributedString(string: newlog))
+                if scroll {
+                    // Scroll to end of the textview contents
+                    self.logView.scrollRangeToVisible(NSRange(location: self.logView.string.count, length: 0))
+                }
+
             }
 		})
         logView.string = log
