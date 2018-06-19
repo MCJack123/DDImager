@@ -7,18 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0412617B20D85D9A0098097B /* BlockBasedSelector.m in Sources */ = {isa = PBXBuildFile; fileRef = 0412617A20D85D9A0098097B /* BlockBasedSelector.m */; };
+		0412618020D8865C0098097B /* External.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0412617E20D8865B0098097B /* External.icns */; };
+		0412618120D8865C0098097B /* Internal.icns in Resources */ = {isa = PBXBuildFile; fileRef = 0412617F20D8865B0098097B /* Internal.icns */; };
+		045C534F20D8AE3600A0F9F6 /* pv in Resources */ = {isa = PBXBuildFile; fileRef = 0412617D20D861CE0098097B /* pv */; };
 		53781E561FD8947F001F70AE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53781E551FD8947F001F70AE /* AppDelegate.swift */; };
 		53781E581FD8947F001F70AE /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53781E571FD8947F001F70AE /* ViewController.swift */; };
 		53781E5A1FD8947F001F70AE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53781E591FD8947F001F70AE /* Assets.xcassets */; };
 		53781E5D1FD8947F001F70AE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 53781E5B1FD8947F001F70AE /* Main.storyboard */; };
 		53ACF98B1FD998180091FE2B /* Lock_Locked State@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 53ACF98A1FD998180091FE2B /* Lock_Locked State@2x.png */; };
 		53ACF98F1FD99B930091FE2B /* STPrivilegedTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 53ACF98E1FD99B920091FE2B /* STPrivilegedTask.m */; };
-		53ACF9911FD9A5C70091FE2B /* pv in Resources */ = {isa = PBXBuildFile; fileRef = 53ACF9901FD9A5C70091FE2B /* pv */; };
 		53C9154D1FDB3C3800EE5159 /* BlockBasedSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53C9154A1FDB3C3700EE5159 /* BlockBasedSelector.swift */; };
-		53C9154E1FDB3C3800EE5159 /* BlockBasedSelector.m in Sources */ = {isa = PBXBuildFile; fileRef = 53C9154B1FDB3C3700EE5159 /* BlockBasedSelector.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0412617A20D85D9A0098097B /* BlockBasedSelector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BlockBasedSelector.m; sourceTree = "<group>"; };
+		0412617C20D85DA00098097B /* BlockBasedSelector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BlockBasedSelector.h; path = ../../../../../.Trash/BlockBasedSelector.h; sourceTree = "<group>"; };
+		0412617D20D861CE0098097B /* pv */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = pv; sourceTree = "<group>"; };
+		0412617E20D8865B0098097B /* External.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = External.icns; path = ../../../../../../../System/Library/Extensions/IOStorageFamily.kext/Contents/Resources/External.icns; sourceTree = "<group>"; };
+		0412617F20D8865B0098097B /* Internal.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Internal.icns; path = ../../../../../../../System/Library/Extensions/IOStorageFamily.kext/Contents/Resources/Internal.icns; sourceTree = "<group>"; };
 		53781E521FD8947E001F70AE /* DDImager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DDImager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		53781E551FD8947F001F70AE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		53781E571FD8947F001F70AE /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -30,13 +37,10 @@
 		53ACF98C1FD99B910091FE2B /* DDImager-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DDImager-Bridging-Header.h"; sourceTree = "<group>"; };
 		53ACF98D1FD99B920091FE2B /* STPrivilegedTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = STPrivilegedTask.h; sourceTree = "<group>"; };
 		53ACF98E1FD99B920091FE2B /* STPrivilegedTask.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = STPrivilegedTask.m; sourceTree = "<group>"; };
-		53ACF9901FD9A5C70091FE2B /* pv */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = pv; sourceTree = "<group>"; };
 		53ACF9921FD9F46A0091FE2B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
 		53ACF9931FD9F5500091FE2B /* image1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = image1.png; sourceTree = "<group>"; };
 		53ACF9941FD9F5580091FE2B /* image2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = image2.png; sourceTree = "<group>"; };
 		53C9154A1FDB3C3700EE5159 /* BlockBasedSelector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlockBasedSelector.swift; sourceTree = "<group>"; };
-		53C9154B1FDB3C3700EE5159 /* BlockBasedSelector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BlockBasedSelector.m; sourceTree = "<group>"; };
-		53C9154C1FDB3C3800EE5159 /* BlockBasedSelector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BlockBasedSelector.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,18 +75,20 @@
 		53781E541FD8947E001F70AE /* DDImager */ = {
 			isa = PBXGroup;
 			children = (
+				0412617D20D861CE0098097B /* pv */,
 				53781E551FD8947F001F70AE /* AppDelegate.swift */,
 				53781E571FD8947F001F70AE /* ViewController.swift */,
-				53ACF9921FD9F46A0091FE2B /* README.md */,
-				53C9154C1FDB3C3800EE5159 /* BlockBasedSelector.h */,
-				53C9154B1FDB3C3700EE5159 /* BlockBasedSelector.m */,
 				53C9154A1FDB3C3700EE5159 /* BlockBasedSelector.swift */,
+				0412617C20D85DA00098097B /* BlockBasedSelector.h */,
+				0412617A20D85D9A0098097B /* BlockBasedSelector.m */,
 				53ACF98D1FD99B920091FE2B /* STPrivilegedTask.h */,
 				53ACF98E1FD99B920091FE2B /* STPrivilegedTask.m */,
-				53ACF9901FD9A5C70091FE2B /* pv */,
+				53ACF9921FD9F46A0091FE2B /* README.md */,
 				53781E591FD8947F001F70AE /* Assets.xcassets */,
 				53781E5B1FD8947F001F70AE /* Main.storyboard */,
 				53781E5E1FD8947F001F70AE /* Info.plist */,
+				0412617E20D8865B0098097B /* External.icns */,
+				0412617F20D8865B0098097B /* Internal.icns */,
 				53ACF98A1FD998180091FE2B /* Lock_Locked State@2x.png */,
 				53781E5F1FD8947F001F70AE /* DDImager.entitlements */,
 				53ACF98C1FD99B910091FE2B /* DDImager-Bridging-Header.h */,
@@ -117,13 +123,18 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0910;
-				LastUpgradeCheck = 0910;
+				LastUpgradeCheck = 1000;
 				ORGANIZATIONNAME = JackMacWindows;
 				TargetAttributes = {
 					53781E511FD8947E001F70AE = {
 						CreatedOnToolsVersion = 9.1;
 						LastSwiftMigration = 0910;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.Sandbox = {
+								enabled = 0;
+							};
+						};
 					};
 				};
 			};
@@ -150,10 +161,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				53ACF9911FD9A5C70091FE2B /* pv in Resources */,
 				53781E5A1FD8947F001F70AE /* Assets.xcassets in Resources */,
 				53ACF98B1FD998180091FE2B /* Lock_Locked State@2x.png in Resources */,
+				0412618120D8865C0098097B /* Internal.icns in Resources */,
 				53781E5D1FD8947F001F70AE /* Main.storyboard in Resources */,
+				045C534F20D8AE3600A0F9F6 /* pv in Resources */,
+				0412618020D8865C0098097B /* External.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -164,7 +177,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				53C9154E1FDB3C3800EE5159 /* BlockBasedSelector.m in Sources */,
+				0412617B20D85D9A0098097B /* BlockBasedSelector.m in Sources */,
 				53781E581FD8947F001F70AE /* ViewController.swift in Sources */,
 				53781E561FD8947F001F70AE /* AppDelegate.swift in Sources */,
 				53C9154D1FDB3C3800EE5159 /* BlockBasedSelector.swift in Sources */,
@@ -200,6 +213,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -207,6 +221,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -257,6 +272,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -264,6 +280,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -297,7 +314,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = DDImager/DDImager.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 94H887LKV9;
@@ -316,7 +332,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = DDImager/DDImager.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 94H887LKV9;

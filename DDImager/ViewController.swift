@@ -80,7 +80,7 @@ func runDDTask(input: String, output: String, fileSize: UInt64?, arguments: Stri
     } else {
         finalFileSize = fileSize!
     }
-    GlobalCarrier = ValueCarrier(withSize: finalFileSize, command: "{ dd if='\(input)' \(arguments) | '\(Bundle.main.path(forResource: "pv", ofType: nil) ?? "/usr/local/bin/pv")' \(fileSize == nil ? "" : "--size \(String(describing: fileSize))") -b -n -i 0.25 | dd of='\(output)' \(arguments); } 2>&1", input: input, output: output)
+    GlobalCarrier = ValueCarrier(withSize: finalFileSize, command: "{ dd if='\(input)' \(arguments) | '\(Bundle.main.path(forResource: "pv", ofType: nil) ?? "/usr/local/bin/pv")' \(fileSize == nil ? "" : "--size \(String(describing: fileSize!))") -b -n -i 0.25 | dd of='\(output)' \(arguments); } 2>&1", input: input, output: output)
     (parentVC as! NSViewController).performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "openProgress"), sender: GlobalCarrier)
     
 }
@@ -103,42 +103,42 @@ class ViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         if !preLaunched {
-		for i in 0...CommandLine.argc-1 {
-			if CommandLine.arguments[Int(i)] == "-c" {
-				let newCommand = CommandLine.arguments[Int(i+1)].replacingOccurrences(of: "\\ ", with: "\\").components(separatedBy: " ")
-        		var input = ""
-        		var output = ""
-				var size: UInt64? = nil
-        		var arguments: [String] = []
-        		for arg in newCommand {
-        		    if arg.hasPrefix("if=") {
-        		        input = arg.replacingOccurrences(of: "if=", with: "").replacingOccurrences(of: "\\", with: " ")
-        		    } else if arg.hasPrefix("of=") {
-         		       	output = arg.replacingOccurrences(of: "of=", with: "").replacingOccurrences(of: "\\", with: " ")
-        		    } else if arg.hasPrefix("size=") {
-						size = UInt64(arg.replacingOccurrences(of: "size=", with: ""))
-            		} else if arg == "sudo" && getuid() != 0 {
-          		      	return;
-           		 	} else if arg != "dd" && arg != "sudo" {
-           		     	arguments.append(arg.replacingOccurrences(of: "\\", with: " "))
-           		 	}
-        		}
-        		var args = ""
-        		for arg in arguments {
-            		if args == "" {args = arg}
-            		else {args += " " + arg}
-        		}
-                running = true
-                preRun = true
-                self.view.window?.close()
-                self.dismiss(nil)
-                DispatchQueue.main.async {
-                    runDDTask(input: input, output: output, fileSize: size, arguments: args, parentVC: self)
-                }
-                print("Running")
-        		break
+			for i in 0...CommandLine.argc-1 {
+				if CommandLine.arguments[Int(i)] == "-c" {
+					let newCommand = CommandLine.arguments[Int(i+1)].replacingOccurrences(of: "\\ ", with: "\\").components(separatedBy: " ")
+					var input = ""
+					var output = ""
+					var size: UInt64? = nil
+					var arguments: [String] = []
+					for arg in newCommand {
+						if arg.hasPrefix("if=") {
+							input = arg.replacingOccurrences(of: "if=", with: "").replacingOccurrences(of: "\\", with: " ")
+						} else if arg.hasPrefix("of=") {
+							output = arg.replacingOccurrences(of: "of=", with: "").replacingOccurrences(of: "\\", with: " ")
+						} else if arg.hasPrefix("size=") {
+							size = UInt64(arg.replacingOccurrences(of: "size=", with: ""))
+						} else if arg == "sudo" && getuid() != 0 {
+							return;
+						} else if arg != "dd" && arg != "sudo" {
+							arguments.append(arg.replacingOccurrences(of: "\\", with: " "))
+						}
+					}
+					var args = ""
+					for arg in arguments {
+						if args == "" {args = arg}
+						else {args += " " + arg}
+					}
+					running = true
+					preRun = true
+					self.view.window?.close()
+					self.dismiss(nil)
+					DispatchQueue.main.async {
+						runDDTask(input: input, output: output, fileSize: size, arguments: args, parentVC: self)
+					}
+					print("Running")
+					break
+				}
 			}
-		}
         }
         preLaunched = true
 
@@ -173,6 +173,37 @@ class ViewController: NSViewController {
         self.performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "inputDD"), sender: nil)
         self.view.window?.close()
     }
+	
+	@IBAction func browseFile(sender: AnyObject) {
+		
+		let dialog = NSOpenPanel();
+		
+		dialog.title                   = "Choose the source image";
+		dialog.showsResizeIndicator    = true;
+		dialog.showsHiddenFiles        = false;
+		dialog.canChooseDirectories    = false;
+		dialog.canCreateDirectories    = false;
+		dialog.allowsMultipleSelection = false;
+		dialog.allowedFileTypes        = ["img", "iso"];
+		
+		if (dialog.runModal() == NSApplication.ModalResponse.OK) {
+			let result = dialog.url // Pathname of the file
+			
+			if (result != nil) {
+				let path = result!.path
+				print(path)
+				let attr = try! FileManager.default.attributesOfItem(atPath: path)
+				let finalFileSize = attr[FileAttributeKey.size] as! UInt64
+				GlobalCarrier = ValueCarrier(withSize: finalFileSize, command: "", input: path, output: "")
+				self.performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "destDisk"), sender: nil)
+				self.view.window?.close()
+			}
+		} else {
+			// User clicked on "Cancel"
+			return
+		}
+		
+	}
 
 }
 
@@ -449,13 +480,13 @@ class ProgressViewController: NSViewController {
                                     let buff = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
                                     let diskinfoo = DADiskCopyDescription(disk) as? [AnyHashable: Any]
                                     let fspathh = diskinfoo![kDADiskDescriptionVolumePathKey] as? String
-                                    if (CFURLGetFileSystemRepresentation(fspathh as! CFURL, false, buff, 1024)) {
+									if (CFURLGetFileSystemRepresentation((fspathh as! CFURL), false, buff, 1024)) {
                                         DispatchQueue.main.sync {
                                             let alert = NSAlert()
                                             alert.messageText = "Error unmounting"
                                             alert.informativeText = "Unmount failed (Error: 0x\(DADissenterGetStatus(dissenter!)) Reason: \(buff)). Please unmount the disk manually.\n"
                                             alert.runModal()
-                                            buff.deallocate(capacity: 1024)
+                                            buff.deallocate()
                                             NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ProgressExit") , object: nil)
                                         }
                                     } else {
@@ -477,7 +508,7 @@ class ProgressViewController: NSViewController {
                             }
                         }
                         if bad {self.finished(nil)}
-                        buf.deallocate(capacity: 1024)
+                        buf.deallocate()
                     }
                 //}
             }
@@ -494,7 +525,7 @@ class ProgressViewController: NSViewController {
                 let buf = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
                 //if diskinfo![kDADiskDescriptionMediaWholeKey] as! Int == 0 {
                     if (fspath != nil) {
-                        if (CFURLGetFileSystemRepresentation(fspath as! CFURL, false, buf, 1024)) {
+						if (CFURLGetFileSystemRepresentation((fspath as! CFURL), false, buf, 1024)) {
                             bad = false
                             unmounted = false
                             nested = false
@@ -505,13 +536,13 @@ class ProgressViewController: NSViewController {
                                     let buff = UnsafeMutablePointer<UInt8>.allocate(capacity: 1024)
                                     let diskinfoo = DADiskCopyDescription(disk) as? [CFString: AnyObject]
                                     let fspathh = diskinfoo![kDADiskDescriptionVolumePathKey] as? String
-                                    if (CFURLGetFileSystemRepresentation(fspathh as! CFURL, false, buff, 1024)) {
+									if (CFURLGetFileSystemRepresentation((fspathh as! CFURL), false, buff, 1024)) {
                                         DispatchQueue.main.sync {
                                             let alert = NSAlert()
                                             alert.messageText = "Error unmounting"
                                             alert.informativeText = "Unmount failed (Error: 0x\(DADissenterGetStatus(dissenter!)) Reason: \(buff)). Please unmount the disk manually.\n"
                                             alert.runModal()
-                                            buff.deallocate(capacity: 1024)
+                                            buff.deallocate()
                                             NotificationCenter.default.post(name: NSNotification.Name(rawValue: "ProgressExit"), object: nil)
                                         }
                                     } else {
@@ -531,7 +562,7 @@ class ProgressViewController: NSViewController {
                             //if bad {self.finished(nil)}
                         }
                     }
-                    buf.deallocate(capacity: 1024)
+                    buf.deallocate()
                 //}
             }
         }
@@ -585,7 +616,7 @@ class ProgressViewController: NSViewController {
     func refreshData() {
         DispatchQueue.main.async {
             if (self.processHasBeenStopped) {
-                self.progress.doubleValue = 0.0
+                self.progress.doubleValue = 1.0
                 self.totalCopiedText.stringValue = "0B"
                 self.speedText.stringValue = "0B/s"
                 return
@@ -630,4 +661,223 @@ class LogViewController : NSViewController {
 	}
 	
     @IBOutlet weak var logView: NSTextView!
+}
+
+class DiskOptionsViewController: NSViewController {
+	
+	var blockSize: Int32 = 4096
+	var blockCount: Int32? = nil
+	var outputSeek: Int32 = 0
+	var inputSkip: Int32 = 0
+	var ignoreErrors = false
+	var eraseDisk = true
+	var fillBlocks = false
+	var swapBytes = false
+	
+	@IBOutlet var blockSizeText: NSTextField!
+	@IBOutlet var blockCountText: NSTextField!
+	@IBOutlet var outputSeekText: NSTextField!
+	@IBOutlet var inputSkipText: NSTextField!
+	@IBOutlet var ignoreErrorsButton: NSButton!
+	@IBOutlet var eraseDiskButton: NSButton!
+	@IBOutlet var fillBlocksButton: NSButton!
+	@IBOutlet var swapBytesButton: NSButton!
+	
+	@IBAction func close(_ sender: Any) {
+		blockSize = blockSizeText.intValue
+		blockCount = (blockCountText.stringValue == "" ? nil : blockCountText.intValue)
+		outputSeek = outputSeekText.intValue
+		inputSkip = inputSkipText.intValue
+		ignoreErrors = ignoreErrorsButton.state == .on
+		eraseDisk = eraseDiskButton.state == .on
+		fillBlocks = fillBlocksButton.state == .on
+		swapBytes = swapBytesButton.state == .on
+		self.dismiss(nil)
+	}
+	
+	override func viewWillAppear() {
+		blockSizeText.intValue = blockSize
+		blockCountText.stringValue = (blockCount == nil ? "" : String(blockCount!))
+		outputSeekText.intValue = outputSeek
+		inputSkipText.intValue = inputSkip
+		ignoreErrorsButton.state = ignoreErrors ? .on : .off
+		eraseDiskButton.state = eraseDisk ? .on : .off
+		fillBlocksButton.state = fillBlocks ? .on : .off
+		swapBytesButton.state = swapBytes ? .on : .off
+	}
+	
+}
+
+class DiskViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSource {
+	
+	class DiskData {
+		var isExternal = false
+		var diskName = ""
+		var bsdName = ""
+		var diskSize: UInt64 = 0
+	}
+	
+	@IBOutlet var diskTable: NSTableView!
+	@IBOutlet var copyButton: NSButton!
+	var disks = [DiskData]()
+	var options = NSStoryboard(name: NSStoryboard.Name(rawValue: "Main"), bundle: Bundle.main).instantiateController(withIdentifier: NSStoryboard.SceneIdentifier(rawValue: "DiskOptionsViewController")) as! DiskOptionsViewController
+	
+	func numberOfRows(in tableView: NSTableView) -> Int {
+		return disks.count
+	}
+	
+	func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+		var image: NSImage?
+		var text: String = ""
+		var cellIdentifier: String = ""
+		if disks.count < row {
+			print("No celll")
+			return nil
+		}
+		let item = disks[row]
+		if tableColumn == diskTable.tableColumns[0] {
+			//image = NSImage(named: NSImage.Name(rawValue: item.isExternal ? "External" : "Internal"))
+			image = NSImage(named: NSImage.Name(rawValue: item.isExternal ? "External" : "Internal"))
+			text = item.diskName
+			cellIdentifier = "diskNameCell"
+		} else if tableColumn == diskTable.tableColumns[1] {
+			text = item.bsdName
+			cellIdentifier = "bsdNameCell"
+		} else if tableColumn == diskTable.tableColumns[2] {
+			text = bytesToHuman(item.diskSize)
+			cellIdentifier = "diskSizeCell"
+		}
+		//print(cellIdentifier)
+		let oldcell = diskTable.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: nil)
+		let cell = oldcell as! NSTableCellView
+			cell.textField?.stringValue = text
+			cell.imageView?.image = image ?? nil
+			return cell
+		
+		
+	}
+	
+	func tableViewSelectionDidChange(_ notification: Notification) {
+		copyButton.isEnabled = true
+	}
+	
+	@objc func parseData(_ pipe: FileHandle) {
+		if let line = String(data: pipe.availableData, encoding: String.Encoding.utf8)?.replacingOccurrences(of: "\n", with: "") {
+			print(line)
+		}
+	}
+	
+	func runAsRoot(_ command: String) {
+		//let pasteboard = NSPasteboard.general
+		//pasteboard.declareTypes([NSPasteboard.PasteboardType.string], owner: nil)
+		//pasteboard.setString(command.stringValue, forType: NSPasteboard.PasteboardType.string)
+		print("do shell script \"\(Bundle.main.executablePath!.replacingOccurrences(of: " ", with: "\\\\ ")) -c \\\"\(command.replacingOccurrences(of: " ", with: "\\\\ "))\\\"\" with administrator privileges")
+		let process = Process()
+		process.launchPath = "/usr/bin/osascript"
+		process.arguments = ["-e", "do shell script \"\(Bundle.main.executablePath!.replacingOccurrences(of: " ", with: "\\\\ ")) -c \\\"\(command.replacingOccurrences(of: " ", with: "\\\\ "))\\\"\" with administrator privileges"]
+		process.terminationHandler = {reason in
+			NSApplication.shared.terminate(self)
+		}
+		let pipe = Pipe()
+		process.standardOutput = pipe
+		let handle = pipe.fileHandleForReading
+		handle.readabilityHandler = parseData
+		process.launch()
+		self.view.window?.close()
+		process.waitUntilExit()
+	}
+	
+	override func viewDidLoad() {
+		diskTable.delegate = self
+		diskTable.dataSource = self
+		let session = DASessionCreate(kCFAllocatorDefault)!
+		let oldfiles = try! FileManager().contentsOfDirectory(atPath: "/dev")
+		let files = oldfiles.filter({(_ s: String) -> Bool in return s.range(of: "^disk[0-9]+s[0-9]+$", options: .regularExpression, range: nil, locale: nil) != nil})
+		//print(oldfiles)
+		//print(files)
+		for f in files {
+			let disk: DADisk? = f.data(using: .ascii)!.withUnsafeBytes {
+				return DADiskCreateFromBSDName(kCFAllocatorDefault, session, $0)
+			}
+			if disk == nil {
+				print("No disk \(f)")
+				continue
+			}
+			let dd = DiskData();
+			dd.bsdName = f
+			let diskinfo = DADiskCopyDescription(disk!) as! [CFString: AnyObject]
+			dd.diskName = diskinfo[kDADiskDescriptionVolumeNameKey] as! String
+			dd.diskSize = diskinfo[kDADiskDescriptionMediaSizeKey] as! UInt64
+			dd.isExternal = diskinfo[kDADiskDescriptionDeviceInternalKey] as! Bool
+			disks.append(dd)
+			//print("Inserted \(f)")
+		}
+		diskTable.reloadData()
+	}
+	
+	@IBAction func close(_ sender: Any) {
+		self.performSegue(withIdentifier: NSStoryboardSegue.Identifier(rawValue: "diskBack"), sender: nil)
+		self.view.window?.close()
+	}
+	
+	@IBAction func openOptions(_ sender: Any) {
+		self.presentViewControllerAsSheet(options)
+	}
+	
+	@IBAction func startTransfer(_ sender: Any) {
+		let row = diskTable.selectedRow
+		var arguments = ""
+		if options.blockCount != nil {
+			arguments += "count=\(options.blockCount!) "
+		}
+		if options.blockSize != 4096 {
+			arguments += "bs=\(options.blockSize)"
+		}
+		if (!options.eraseDisk || options.fillBlocks || options.ignoreErrors || options.swapBytes) {
+			arguments += "conv="
+			var e = false
+			if (!options.eraseDisk) {
+				e = true
+				arguments += "notrunc"
+			}
+			if (options.fillBlocks) {
+				if (e) {
+					arguments += ","
+				} else {
+					e = true
+				}
+				arguments += "sync"
+			}
+			if (options.ignoreErrors) {
+				if (e) {
+					arguments += ","
+				} else {
+					e = true
+				}
+				arguments += "noerror"
+			}
+			if (options.swapBytes) {
+				if (e) {
+					arguments += ","
+				} else {
+					e = true
+				}
+				arguments += "swab"
+			}
+			arguments += " "
+		}
+		let iarguments = arguments + (options.inputSkip != 0 ? "skip=\(options.inputSkip) " : "")
+		let oarguments = arguments + (options.outputSeek != 0 ? "seek=\(options.outputSeek) " : "")
+		if getuid() != 0 {
+			let command = "{ dd if='\(GlobalCarrier!.inputDisk)' \(iarguments) | '\(Bundle.main.path(forResource: "pv", ofType: nil) ?? "/usr/local/bin/pv")' --size \(String(describing: GlobalCarrier!.fileSize)) -b -n -i 0.25 | dd of='/dev/\(disks[row].bsdName)' \(oarguments); } 2>&1"
+			//print(command)
+			runAsRoot(command)
+			NSApplication.shared.terminate(self)
+			// switching is broken right now
+		} else {
+			runDDTask(input: GlobalCarrier!.inputDisk, output: "/dev/\(disks[row].bsdName)", fileSize: GlobalCarrier!.fileSize, arguments: arguments, parentVC: self)
+			self.view.window?.close()
+		}
+	}
+	
 }
