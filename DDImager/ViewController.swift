@@ -711,10 +711,10 @@ class DiskOptionsViewController: NSViewController {
 class DiskViewController: NSViewController, NSTableViewDelegate, NSTableViewDataSource {
 	
 	class DiskData {
-		var isExternal = false
-		var diskName = ""
+        var isExternal: Bool?
+        var diskName: String?
 		var bsdName = ""
-		var diskSize: UInt64 = 0
+		var diskSize: UInt64?
 	}
 	
 	@IBOutlet var diskTable: NSTableView!
@@ -737,24 +737,23 @@ class DiskViewController: NSViewController, NSTableViewDelegate, NSTableViewData
 		let item = disks[row]
 		if tableColumn == diskTable.tableColumns[0] {
 			//image = NSImage(named: NSImage.Name(rawValue: item.isExternal ? "External" : "Internal"))
-			image = NSImage(named: NSImage.Name(rawValue: item.isExternal ? "External" : "Internal"))
-			text = item.diskName
+			image = NSImage(named: NSImage.Name(rawValue: item.isExternal == false ? "Internal" : "External"))
+            text = item.diskName == nil ? item.bsdName : item.diskName!
 			cellIdentifier = "diskNameCell"
 		} else if tableColumn == diskTable.tableColumns[1] {
 			text = item.bsdName
 			cellIdentifier = "bsdNameCell"
 		} else if tableColumn == diskTable.tableColumns[2] {
-			text = bytesToHuman(item.diskSize)
+            if item.diskSize != nil {text = bytesToHuman(item.diskSize!)}
+            else {text = "??"}
 			cellIdentifier = "diskSizeCell"
 		}
 		//print(cellIdentifier)
 		let oldcell = diskTable.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: cellIdentifier), owner: nil)
 		let cell = oldcell as! NSTableCellView
-			cell.textField?.stringValue = text
-			cell.imageView?.image = image ?? nil
-			return cell
-		
-		
+        cell.textField?.stringValue = text
+        cell.imageView?.image = image ?? nil
+        return cell
 	}
 	
 	func tableViewSelectionDidChange(_ notification: Notification) {
@@ -806,9 +805,9 @@ class DiskViewController: NSViewController, NSTableViewDelegate, NSTableViewData
 			let dd = DiskData();
 			dd.bsdName = f
 			let diskinfo = DADiskCopyDescription(disk!) as! [CFString: AnyObject]
-			dd.diskName = diskinfo[kDADiskDescriptionVolumeNameKey] as! String
-			dd.diskSize = diskinfo[kDADiskDescriptionMediaSizeKey] as! UInt64
-			dd.isExternal = diskinfo[kDADiskDescriptionDeviceInternalKey] as! Bool
+			dd.diskName = diskinfo[kDADiskDescriptionVolumeNameKey] as? String
+			dd.diskSize = diskinfo[kDADiskDescriptionMediaSizeKey] as? UInt64
+			dd.isExternal = diskinfo[kDADiskDescriptionDeviceInternalKey] as? Bool
 			disks.append(dd)
 			//print("Inserted \(f)")
 		}

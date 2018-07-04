@@ -319,6 +319,7 @@
 				DEVELOPMENT_TEAM = 94H887LKV9;
 				INFOPLIST_FILE = DDImager/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bruienne.cppconsole.DDImager;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DDImager/DDImager-Bridging-Header.h";
@@ -337,6 +338,7 @@
 				DEVELOPMENT_TEAM = 94H887LKV9;
 				INFOPLIST_FILE = DDImager/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bruienne.cppconsole.DDImager;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DDImager/DDImager-Bridging-Header.h";
